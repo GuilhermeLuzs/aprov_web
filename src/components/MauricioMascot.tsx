@@ -32,5 +32,11 @@ type Props = {
 };
 
 export function MauricioMascot({ mood = 'neutral', size = 'md' }: Props) {
-  return <img src={ART[mood]} alt="Maurício" className={`${HEIGHT[size]} w-auto shrink-0`} />;
+  return (
+    <img
+      src={ART[mood]}
+      alt="Maurício"
+      className={`${HEIGHT[size]} w-auto max-w-none shrink-0 object-contain`}
+    />
+  );
 }
