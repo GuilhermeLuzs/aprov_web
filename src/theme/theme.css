@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --*: initial;
+
+  --color-bg: #F4F4F6;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #EDECEA;
+
+  --color-ink: #2A211C;
+  --color-ink-muted: #6E635C;
+  --color-ink-faint: #A9A09A;
+  --color-border: #E4E2E0;
+
+  --color-primary: #E06014;
+  --color-primary-bright: #F0762D;
+  --color-primary-dim: #FCEDE3;
+  --color-primary-press: #C34F0C;
+
+  --color-value: #FACE04;
+  --color-value-deep: #E8840E;
+  --color-value-dim: #FFF6D6;
+
+  --color-agree: #0E8F6E;
+  --color-disagree: #CC0C5F;
+  --color-agree-dim: #E2F2ED;
+  --color-disagree-dim: #FBE4EE;
+  --color-agree-halo: rgba(14, 143, 110, 0.25);
+
+  --color-scrim: rgba(20, 12, 8, 0.55);
+  --color-media-backdrop: #000000;
+  --color-media-control: rgba(0, 0, 0, 0.45);
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+
+  --spacing-control: 44px;
+  --spacing-brand-mark: 28px;
+  --spacing-avatar-sm: 32px;
+  --spacing-avatar-md: 40px;
+  --spacing-avatar-lg: 64px;
+  --spacing-company-logo: 64px;
+  --spacing-mascot-sm: 64px;
+  --spacing-mascot-md: 96px;
+  --spacing-mascot-lg: 124px;
+
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --radius-pill: 999px;
+
+  --font-display: "Archivo", sans-serif;
+  --font-body: "Figtree", sans-serif;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  --text-display: 28px;
+  --text-display--line-height: 33px;
+  --text-title: 20px;
+  --text-title--line-height: 25px;
+  --text-subtitle: 16px;
+  --text-subtitle--line-height: 21px;
+  --text-body: 15px;
+  --text-body--line-height: 23px;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-micro: 11px;
+  --text-micro--line-height: 15px;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+}
