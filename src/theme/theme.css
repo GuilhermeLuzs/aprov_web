@@ -53,6 +53,7 @@
   --spacing-header: 64px;
   --spacing-phone-fit: clamp(320px, calc(100dvh - var(--spacing-header) - 2 * var(--spacing-section) - var(--spacing-sm)), 600px);
   --spacing-feature-icon: 48px;
+  --spacing-progress: 6px;
   --spacing-banner-star-sm: 32px;
   --spacing-banner-star-md: 50px;
   --spacing-banner-star-lg: 66px;
@@ -61,6 +62,8 @@
   --container-page: 1120px;
   --container-wide: 1280px;
   --container-text: 640px;
+  --container-form: 560px;
+  --container-form-wide: 960px;
   --container-banner-mascot-sm: 250px;
   --container-banner-mascot-md: 360px;
   --container-phone: 280px;
