@@ -1,1 +1,1 @@
-export { default as LandingScreen } from './Public/LandingScreen';
+export { default as LandingScreen } from './Public/Landing/LandingScreen';
