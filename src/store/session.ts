@@ -78,3 +78,12 @@ function subscribe(listener: () => void) {
 export function useCurrentAccount(): Account | null {
   return useSyncExternalStore(subscribe, () => state.current);
 }
+
+function currentCompany(): Company | null {
+  const companyId = state.current?.companyId;
+  return companyId ? (state.companies.find((c) => c.id === companyId) ?? null) : null;
+}
+
+export function useCurrentCompany(): Company | null {
+  return useSyncExternalStore(subscribe, currentCompany);
+}

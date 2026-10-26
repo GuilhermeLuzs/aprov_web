@@ -46,6 +46,10 @@ export type Company = {
   category: Category;
   modality: Modality;
   size: CompanySize;
+  description?: string;
+  logoUrl?: string;
+  coinName?: string;
+  coinColor?: string;
 };
 
 export type CompanyResponsible = {
