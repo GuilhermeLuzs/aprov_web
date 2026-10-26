@@ -1,8 +1,8 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { PanelLayout } from '../layouts/PanelLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
 import {
-  CompanyHomeScreen,
   CompanyLandingScreen,
   CompanySignUpScreen,
   LandingScreen,
@@ -11,6 +11,8 @@ import {
   PasswordRecoveryScreen,
 } from '../screens';
 import { RequireRole } from './RequireRole';
+
+const CompanyOverviewScreen = lazy(() => import('../screens/Company/Overview/CompanyOverviewScreen'));
 
 export function AppRoutes() {
   return (
@@ -32,7 +34,9 @@ export function AppRoutes() {
             path="empresa"
             element={
               <RequireRole role="empresa">
-                <CompanyHomeScreen />
+                <Suspense fallback={null}>
+                  <CompanyOverviewScreen />
+                </Suspense>
               </RequireRole>
             }
           />
