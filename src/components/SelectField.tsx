@@ -32,7 +32,7 @@ export function SelectField({ label, value, onChange, options, placeholder, erro
           onChange={(event) => onChange(event.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-erro` : undefined}
-          className={`h-full w-full cursor-pointer appearance-none rounded-control bg-surface pr-control pl-md outline-none ${
+          className={`h-full w-full appearance-none rounded-control bg-surface pr-control pl-md outline-none ${
             value ? 'text-ink' : 'text-ink-faint'
           }`}
         >
