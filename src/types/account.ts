@@ -6,8 +6,8 @@ export const PANEL_PATH: Record<Role, string> = {
 };
 
 export const PANEL_LABEL: Record<Role, string> = {
-  empresa: 'Painel da empresa',
-  master: 'Administração',
+  empresa: 'painel da empresa',
+  master: 'administração',
 };
 
 export type Account = {

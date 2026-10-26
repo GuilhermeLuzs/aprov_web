@@ -9,7 +9,7 @@ type Props = {
 export function FaqItem({ question, answer }: Props) {
   return (
     <details className="group rounded-card border border-border bg-surface">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-lg p-lg font-body font-semibold text-ink">
+      <summary className="flex list-none items-center justify-between gap-lg p-lg font-body font-semibold text-ink">
         {question}
         <ChevronDown
           size={icon.size.md}

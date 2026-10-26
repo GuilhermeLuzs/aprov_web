@@ -3,10 +3,10 @@ import type { Account } from '../types';
 export const testCompanyAccount: Account = {
   id: 'a1',
   role: 'empresa',
-  name: 'Café Serra Alta',
+  name: 'Cozinha da Vó Marlene',
   email: 'empresa@aprov.com',
   password: 'aprov123',
-  companyId: 'c5',
+  companyId: 'c2',
 };
 
 export const testMasterAccount: Account = {

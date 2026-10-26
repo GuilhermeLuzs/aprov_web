@@ -27,6 +27,17 @@
   --color-disagree-dim: #FBE4EE;
   --color-agree-halo: rgba(14, 143, 110, 0.25);
 
+  --color-series-1: #2a78d6;
+  --color-series-2: #eb6834;
+  --color-series-3: #1baf7a;
+  --color-series-4: #eda100;
+  --color-series-5: #e87ba4;
+
+  --color-rating-bad: #d03b3b;
+  --color-rating-poor: #ec835a;
+  --color-rating-fair: #fab219;
+  --color-rating-good: #0ca30c;
+
   --color-scrim: rgba(20, 12, 8, 0.55);
   --color-media-backdrop: #000000;
   --color-media-control: rgba(0, 0, 0, 0.45);
@@ -54,6 +65,12 @@
   --spacing-phone-fit: clamp(320px, calc(100dvh - var(--spacing-header) - 2 * var(--spacing-section) - var(--spacing-sm)), 600px);
   --spacing-feature-icon: 48px;
   --spacing-progress: 6px;
+  --spacing-sidebar: 240px;
+  --spacing-panel-body: calc(100dvh - var(--spacing-header));
+  --spacing-legend-key: 12px;
+  --spacing-legend-line: 2px;
+  --spacing-bar: 8px;
+  --spacing-chart: 260px;
   --spacing-banner-star-sm: 32px;
   --spacing-banner-star-md: 50px;
   --spacing-banner-star-lg: 66px;
@@ -67,6 +84,7 @@
   --container-banner-mascot-sm: 250px;
   --container-banner-mascot-md: 360px;
   --container-phone: 280px;
+  --container-popover: 280px;
 
   --aspect-banner-mascot: 1100 / 950;
   --aspect-phone: 390 / 844;
@@ -89,6 +107,8 @@
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
 
+  --text-hero: 48px;
+  --text-hero--line-height: 52px;
   --text-banner-sm: 32px;
   --text-banner-sm--line-height: 36px;
   --text-banner-md: 52px;
@@ -134,5 +154,14 @@
     font-family: var(--font-body);
     font-size: var(--text-body);
     line-height: var(--text-body--line-height);
+  }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  select:not(:disabled),
+  summary,
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled) {
+    cursor: pointer;
   }
 }
