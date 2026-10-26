@@ -9,6 +9,11 @@ export const PRODUCT_KIND_LABEL: Record<ProductKind, string> = {
 
 export type ProductStatus = 'active' | 'inactive';
 
+export const PRODUCT_STATUS_LABEL: Record<ProductStatus, string> = {
+  active: 'Ativo',
+  inactive: 'Inativo',
+};
+
 export type Product = {
   id: string;
   companyId: string;
