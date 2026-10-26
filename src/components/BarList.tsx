@@ -1,11 +1,5 @@
 import type { RatingTone } from '../utils/overview';
-
-const TONE_FILL: Record<RatingTone, string> = {
-  bad: 'bg-rating-bad',
-  poor: 'bg-rating-poor',
-  fair: 'bg-rating-fair',
-  good: 'bg-rating-good',
-};
+import { RATING_TONE_FILL } from './RatingValue';
 
 export type BarListItem = {
   id: string;
@@ -48,7 +42,7 @@ export function BarList({ items, max, emptyText }: Props) {
               </div>
               <div className="h-bar rounded-pill bg-surface-alt">
                 <div
-                  className={`h-full rounded-pill ${item.tone ? TONE_FILL[item.tone] : 'bg-series-1'}`}
+                  className={`h-full rounded-pill ${item.tone ? RATING_TONE_FILL[item.tone] : 'bg-series-1'}`}
                   style={{ width: `${max === 0 ? 0 : (item.value / max) * 100}%` }}
                 />
               </div>

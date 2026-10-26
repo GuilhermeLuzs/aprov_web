@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ChartCard, ChartTooltip, type LegendItem } from '../../../components';
-import { chart } from '../../../theme';
-import { CHARACTERISTICS, CHARACTERISTIC_LABEL } from '../../../types';
-import { formatDay, formatLongDay, formatRating } from '../../../utils/format';
-import type { DayAverages } from '../../../utils/overview';
+import { ChartCard, type LegendItem } from './ChartCard';
+import { ChartTooltip } from './ChartTooltip';
+import { chart } from '../theme';
+import { CHARACTERISTICS, CHARACTERISTIC_LABEL } from '../types';
+import { formatDay, formatLongDay, formatRating } from '../utils/format';
+import type { DayAverages } from '../utils/overview';
 
 const LINES = [
   { key: 'overall', label: 'Nota geral' },
@@ -15,7 +16,13 @@ const LEGEND: LegendItem[] = LINES.map((line, series) => ({ key: line.key, label
 
 const RATING_TICKS = [1, 2, 3, 4, 5];
 
-export function RatingTrendChart({ data }: { data: DayAverages[] }) {
+type Props = {
+  data: DayAverages[];
+  title: string;
+  description: string;
+};
+
+export function RatingTrendChart({ data, title, description }: Props) {
   const [hiddenKeys, setHiddenKeys] = useState<string[]>([]);
 
   const toggleKey = (key: string) =>
@@ -23,8 +30,8 @@ export function RatingTrendChart({ data }: { data: DayAverages[] }) {
 
   return (
     <ChartCard
-      title="Notas ao longo do período"
-      description="Média do dia, de 1 a 5, nos dias que tiveram avaliação."
+      title={title}
+      description={description}
       legend={LEGEND}
       hiddenKeys={hiddenKeys}
       onToggleKey={toggleKey}

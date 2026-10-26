@@ -71,6 +71,11 @@
   --spacing-legend-line: 2px;
   --spacing-bar: 8px;
   --spacing-chart: 260px;
+  --spacing-switch-track-w: 36px;
+  --spacing-switch-track-h: 20px;
+  --spacing-switch-knob: 16px;
+  --spacing-switch-travel: 16px;
+  --spacing-switch-inset: 2px;
   --spacing-banner-star-sm: 32px;
   --spacing-banner-star-md: 50px;
   --spacing-banner-star-lg: 66px;
@@ -85,6 +90,8 @@
   --container-banner-mascot-md: 360px;
   --container-phone: 280px;
   --container-popover: 280px;
+  --container-dialog: 440px;
+  --container-modal: 760px;
 
   --aspect-banner-mascot: 1100 / 950;
   --aspect-phone: 390 / 844;
@@ -97,6 +104,8 @@
 
   --shadow-card: 0 8px 24px rgba(42, 33, 28, 0.08);
   --shadow-phone: 0 24px 48px rgba(42, 33, 28, 0.22);
+  --shadow-edge-below: 0 6px 12px -8px rgba(42, 33, 28, 0.25);
+  --shadow-edge-above: 0 -6px 12px -8px rgba(42, 33, 28, 0.25);
 
   --font-display: "Archivo", sans-serif;
   --font-body: "Figtree", sans-serif;

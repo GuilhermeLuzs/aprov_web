@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
 import {
   BarList,
   CategoryCounts,
-  MauricioMascot,
+  EmptyNotice,
   PeriodFilter,
   StatTile,
   type BarListItem,
   type CategoryCount,
-  type MauricioMood,
 } from '../../../components';
-import { companies, mockToday, products, reviews, tagById } from '../../../mocks';
+import { RatingTrendChart } from '../../../components/RatingTrendChart';
+import { mockToday, reviews, tagById } from '../../../mocks';
+import { useProducts } from '../../../store/catalog';
 import { useCurrentAccount } from '../../../store/session';
 import { CATEGORY_LABEL, CHARACTERISTICS, CHARACTERISTIC_LABEL, PRODUCT_KIND_LABEL, type Category } from '../../../types';
 import { formatRating, plural } from '../../../utils/format';
@@ -28,7 +30,6 @@ import {
   type PeriodKey,
   type ProductScore,
 } from '../../../utils/overview';
-import { RatingTrendChart } from './RatingTrendChart';
 import { VolumeChart } from './VolumeChart';
 
 const TOP_TAGS = 5;
@@ -48,23 +49,10 @@ function scoreItem(score: ProductScore): BarListItem {
   };
 }
 
-type EmptyNoticeProps ={ mood: MauricioMood; title: string; text: string };
-
-function EmptyNotice({ mood, title, text }: EmptyNoticeProps) {
-  return (
-    <div className="flex flex-col items-center gap-md rounded-card border border-border bg-surface p-xxl text-center">
-      <MauricioMascot mood={mood} size="md" />
-      <p className="font-display font-semibold text-subtitle text-ink">{title}</p>
-      <p className="max-w-text text-ink-muted">{text}</p>
-    </div>
-  );
-}
-
 export default function CompanyOverviewScreen() {
   const account = useCurrentAccount();
-  const company = companies.find((c) => c.id === account?.companyId);
-  const companyProducts = products.filter((p) => p.companyId === company?.id);
-  const companyReviews = reviews.filter((r) => r.companyId === company?.id);
+  const companyProducts = useProducts().filter((p) => p.companyId === account?.companyId);
+  const companyReviews = reviews.filter((r) => r.companyId === account?.companyId);
 
   const [period, setPeriod] = useState<PeriodKey>('30d');
   const [custom, setCustom] = useState<DayRange>(presetRange('30d', mockToday));
@@ -164,14 +152,23 @@ export default function CompanyOverviewScreen() {
             ))}
           </div>
 
-          <RatingTrendChart data={averagesByDay(scoped)} />
+          <RatingTrendChart
+            data={averagesByDay(scoped)}
+            title="Notas ao longo do período"
+            description="Média do dia, de 1 a 5, nos dias que tiveram avaliação."
+          />
 
           <VolumeChart byDay={countByDay(scoped, range)} byWeekday={countByWeekday(scoped)} />
 
           <section className="flex min-w-zero flex-col gap-lg rounded-card border border-border bg-surface p-lg">
-            <div className="flex flex-col gap-xs">
-              <h2 className="font-display font-semibold text-subtitle text-ink">Itens por nota média</h2>
-              <p className="text-caption text-ink-muted">Os produtos e serviços com as melhores e as piores notas do período.</p>
+            <div className="flex flex-wrap items-start justify-between gap-md">
+              <div className="flex flex-col gap-xs">
+                <h2 className="font-display font-semibold text-subtitle text-ink">Itens por nota média</h2>
+                <p className="text-caption text-ink-muted">Os produtos e serviços com as melhores e as piores notas do período.</p>
+              </div>
+              <Link to="/empresa/catalogo" className="font-semibold text-caption text-primary hover:text-primary-press">
+                Ver a nota de todos os itens
+              </Link>
             </div>
             <div className="grid gap-xl md:grid-cols-2">
               <div className="flex min-w-zero flex-col gap-md">
