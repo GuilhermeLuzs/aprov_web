@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useId, useRef, useState } from 'react';
 import { formatInt } from '../utils/format';
+import { useDismiss } from './useDismiss';
 
 export type CategoryCount = { label: string; count: number };
 
@@ -15,21 +16,8 @@ export function CategoryCounts({ label, counts, total, visible = 3 }: Props) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const panelId = useId();
 
-  useEffect(() => {
-    if (!open) return;
-    const closeOnOutside = (event: PointerEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('pointerdown', closeOnOutside);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeOnOutside);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
+  useDismiss(wrapperRef, open, close);
 
   if (counts.length === 0) return null;
 

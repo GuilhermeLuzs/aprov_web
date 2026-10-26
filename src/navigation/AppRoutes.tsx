@@ -13,6 +13,7 @@ import {
 import { RequireRole } from './RequireRole';
 
 const CompanyOverviewScreen = lazy(() => import('../screens/Company/Overview/CompanyOverviewScreen'));
+const CatalogScreen = lazy(() => import('../screens/Company/Catalog/CatalogScreen'));
 
 export function AppRoutes() {
   return (
@@ -36,6 +37,16 @@ export function AppRoutes() {
               <RequireRole role="empresa">
                 <Suspense fallback={null}>
                   <CompanyOverviewScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="empresa/catalogo"
+            element={
+              <RequireRole role="empresa">
+                <Suspense fallback={null}>
+                  <CatalogScreen />
                 </Suspense>
               </RequireRole>
             }

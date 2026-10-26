@@ -22,7 +22,7 @@ type NavItem = { label: string; Icon: LucideIcon; to?: string };
 const ITEMS: Record<Role, NavItem[]> = {
   empresa: [
     { label: 'Visão geral', Icon: LayoutDashboard, to: '/empresa' },
-    { label: 'Catálogo', Icon: Package },
+    { label: 'Catálogo', Icon: Package, to: '/empresa/catalogo' },
     { label: 'Moedas', Icon: Coins },
     { label: 'Integrações', Icon: Plug },
   ],
