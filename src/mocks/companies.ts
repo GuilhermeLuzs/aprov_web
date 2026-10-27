@@ -15,7 +15,5 @@ export const companies: Company[] = [
       'Congelados artesanais feitos em pequenos lotes, do jeito caseiro, entregues na sua casa.',
     logoUrl:
       'https://images.pexels.com/photos/3171160/pexels-photo-3171160.jpeg?auto=compress&cs=tinysrgb&w=160&h=160&fit=crop',
-    coinName: 'PratosVó',
-    coinColor: '#B45309',
   },
 ];

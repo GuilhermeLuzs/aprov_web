@@ -48,8 +48,6 @@ export type Company = {
   size: CompanySize;
   description?: string;
   logoUrl?: string;
-  coinName?: string;
-  coinColor?: string;
 };
 
 export type CompanyResponsible = {
