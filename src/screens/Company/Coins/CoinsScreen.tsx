@@ -2,12 +2,13 @@ import { useCallback, useState } from 'react';
 import { Button, EmptyNotice, Modal, Switch, Tabs } from '../../../components';
 import { coinSettingsOrDefault, saveCoinSettings, setCoinsEnabled, useCoinSettings } from '../../../store/coins';
 import { useCurrentAccount } from '../../../store/session';
+import { CoinPerformance } from './CoinPerformance';
 import { CoinSettingsForm } from './CoinSettingsForm';
 
 type CoinTab = 'performance' | 'settings';
 
-const TABS: { key: CoinTab; label: string; disabled?: boolean }[] = [
-  { key: 'performance', label: 'Desempenho', disabled: true },
+const TABS: { key: CoinTab; label: string }[] = [
+  { key: 'performance', label: 'Desempenho' },
   { key: 'settings', label: 'Configuração' },
 ];
 
@@ -15,7 +16,7 @@ export default function CoinsScreen() {
   const account = useCurrentAccount();
   const companyId = account?.companyId ?? '';
   const settings = coinSettingsOrDefault(companyId, useCoinSettings(companyId));
-  const [tab, setTab] = useState<CoinTab>('settings');
+  const [tab, setTab] = useState<CoinTab>('performance');
   const [confirmingOff, setConfirmingOff] = useState(false);
   const closeConfirm = useCallback(() => setConfirmingOff(false), []);
   const coinName = settings.name || 'moedas';
@@ -43,12 +44,19 @@ export default function CoinsScreen() {
       </div>
 
       {settings.enabled ? (
-        <CoinSettingsForm
-          key={companyId}
-          settings={settings}
-          onSave={saveCoinSettings}
-          toolbar={<Tabs label="Seções de moedas" tabs={TABS} value={tab} onChange={setTab} />}
-        />
+        tab === 'performance' ? (
+          <div className="flex flex-col gap-lg">
+            <Tabs label="Seções de moedas" tabs={TABS} value={tab} onChange={setTab} />
+            <CoinPerformance settings={settings} />
+          </div>
+        ) : (
+          <CoinSettingsForm
+            key={companyId}
+            settings={settings}
+            onSave={saveCoinSettings}
+            toolbar={<Tabs label="Seções de moedas" tabs={TABS} value={tab} onChange={setTab} />}
+          />
+        )
       ) : (
         <EmptyNotice
           mood="neutral"
