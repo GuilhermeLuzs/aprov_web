@@ -3,7 +3,6 @@ import { icon } from '../theme';
 import type { DayRange, PeriodKey } from '../utils/overview';
 
 const PRESETS: { key: PeriodKey; label: string }[] = [
-  { key: 'today', label: 'Hoje' },
   { key: '7d', label: 'Últimos 7 dias' },
   { key: '30d', label: 'Últimos 30 dias' },
   { key: 'month', label: 'Este mês' },
