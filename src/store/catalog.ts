@@ -10,9 +10,29 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
+function emit() {
+  listeners.forEach((listener) => listener());
+}
+
 export function setProductStatus(productId: string, status: ProductStatus) {
   products = products.map((product) => (product.id === productId ? { ...product, status } : product));
-  listeners.forEach((listener) => listener());
+  emit();
+}
+
+export function addProduct(product: Omit<Product, 'id'>): Product {
+  const created = { ...product, id: `p${Date.now()}` };
+  products = [...products, created];
+  emit();
+  return created;
+}
+
+export function updateProduct(product: Product) {
+  products = products.map((current) => (current.id === product.id ? product : current));
+  emit();
+}
+
+export function findProduct(productId: string): Product | undefined {
+  return products.find((product) => product.id === productId);
 }
 
 export function useProducts(): Product[] {
