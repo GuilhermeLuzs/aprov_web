@@ -107,3 +107,12 @@ export const COIN_ICON_LABEL: Record<CoinIcon, string> = {
   gem: 'Diamante',
   flame: 'Chama',
 };
+
+export type CoinRedemption = {
+  id: string;
+  companyId: string;
+  customerId: string;
+  createdAt: string;
+  coins: number;
+  coupon: string;
+};

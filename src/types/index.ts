@@ -26,5 +26,5 @@ export type { Category, Company, CompanyResponsible, CompanySize, Modality } fro
 export { CATEGORY_LABEL, COMPANY_SIZE_LABEL, MODALITY_LABEL } from './company';
 export type { Characteristic, Review, Sentiment, Tag } from './review';
 export { CHARACTERISTICS, CHARACTERISTIC_LABEL } from './review';
-export type { CoinIcon, CoinSettings, RewardRule, RewardTable, RewardThreshold, RewardTopic } from './coins';
+export type { CoinIcon, CoinRedemption, CoinSettings, RewardRule, RewardTable, RewardThreshold, RewardTopic } from './coins';
 export { COIN_ICON_LABEL, COIN_ICONS, REWARD_THRESHOLD, REWARD_TOPIC_HINT, REWARD_TOPICS_BY_KIND, REWARD_TOPIC_LABEL } from './coins';
