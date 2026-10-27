@@ -130,7 +130,7 @@ export function AdvancedIntegration() {
 
           <Card title="Chave de API" description="É ela que deixa o seu N8N falar com a APROV. Não compartilhe.">
             <div className="flex items-center gap-xs rounded-control border border-border bg-surface-alt pl-md">
-              <code className="min-w-zero flex-1 truncate font-mono text-caption text-ink">
+              <code className="sensitive min-w-zero flex-1 truncate font-mono text-caption text-ink">
                 {revealed ? settings.apiKey : masked(settings.apiKey)}
               </code>
               <IconButton
@@ -158,6 +158,7 @@ export function AdvancedIntegration() {
               <TextField
                 label="URL do webhook do N8N"
                 value={webhook}
+                sensitive
                 onChange={setWebhook}
                 placeholder="https://seu-n8n.com/webhook/aprov-resgate"
                 error={webhookError}

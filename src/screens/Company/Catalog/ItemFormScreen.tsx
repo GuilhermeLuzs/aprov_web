@@ -179,6 +179,7 @@ export default function ItemFormScreen() {
           <TextField
             label="Título"
             value={form.title}
+            sensitive
             onChange={(value) => update({ title: value })}
             placeholder={isService ? 'Ex.: Aula de massas caseiras' : 'Ex.: Lasanha à bolonhesa congelada 800g'}
             counter={`${form.title.length}/${TITLE_MAX}`}

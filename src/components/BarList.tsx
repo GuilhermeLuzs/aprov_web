@@ -30,15 +30,15 @@ export function BarList({ items, max, emptyText }: Props) {
                 src={item.imageUrl}
                 alt=""
                 loading="lazy"
-                className="h-avatar-md w-avatar-md shrink-0 rounded-control bg-surface-alt object-cover"
+                className="sensitive h-avatar-md w-avatar-md shrink-0 rounded-control bg-surface-alt object-cover"
               />
             ) : null}
             <div className="flex min-w-zero flex-1 flex-col gap-xs">
               <div className="flex items-baseline justify-between gap-md">
-                <span className="min-w-zero truncate text-ink" title={item.label}>
+                <span className="sensitive min-w-zero truncate text-ink" title={item.label}>
                   {item.label}
                 </span>
-                <span className="shrink-0 font-semibold text-ink tabular-nums">{item.valueLabel}</span>
+                <span className="sensitive shrink-0 font-semibold text-ink tabular-nums">{item.valueLabel}</span>
               </div>
               <div className="h-bar rounded-pill bg-surface-alt">
                 <div
@@ -46,7 +46,7 @@ export function BarList({ items, max, emptyText }: Props) {
                   style={{ width: `${max === 0 ? 0 : (item.value / max) * 100}%` }}
                 />
               </div>
-              {item.detail ? <span className="text-caption text-ink-muted">{item.detail}</span> : null}
+              {item.detail ? <span className="sensitive text-caption text-ink-muted">{item.detail}</span> : null}
             </div>
           </div>
         </li>

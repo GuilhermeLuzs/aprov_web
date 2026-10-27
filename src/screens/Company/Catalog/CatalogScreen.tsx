@@ -125,7 +125,7 @@ export default function CatalogScreen() {
         <div className="flex flex-col gap-xs">
           <h1 className="font-display font-bold text-display text-ink">Catálogo</h1>
           <p className="text-ink-muted">
-            Os produtos e serviços que a {account?.name ?? 'sua empresa'} oferece para
+            Os produtos e serviços que a <span className="sensitive">{account?.name ?? 'sua empresa'}</span> oferece para
             avaliação.
           </p>
         </div>

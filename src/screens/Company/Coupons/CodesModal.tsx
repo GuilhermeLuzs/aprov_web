@@ -82,7 +82,7 @@ export function CodesModal({ offer, onClose }: Props) {
         <ul className="flex flex-col">
           {shown.map((c) => (
             <li key={c.code} className="flex items-center justify-between gap-md border-b border-border py-sm last:border-b-0">
-              <code className="font-mono text-ink">{c.code}</code>
+              <code className="sensitive font-mono text-ink">{c.code}</code>
               {c.deliveredAt ? (
                 <span className="text-caption text-ink-muted">entregue em {formatLongDay(c.deliveredAt.slice(0, 10))}</span>
               ) : confirmingCode === c.code ? (

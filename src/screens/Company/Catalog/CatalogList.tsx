@@ -91,13 +91,13 @@ export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus,
                     src={row.product.imageUrl}
                     alt=""
                     loading="lazy"
-                    className="h-avatar-md w-avatar-md shrink-0 rounded-control bg-surface-alt object-cover"
+                    className="sensitive h-avatar-md w-avatar-md shrink-0 rounded-control bg-surface-alt object-cover"
                   />
                   <div className="flex min-w-zero flex-col">
-                    <span className="truncate font-semibold text-ink" title={row.product.title}>
+                    <span className="sensitive truncate font-semibold text-ink" title={row.product.title}>
                       {row.product.title}
                     </span>
-                    <span className="truncate text-caption text-ink-muted">{categoriesOf(row)}</span>
+                    <span className="sensitive truncate text-caption text-ink-muted">{categoriesOf(row)}</span>
                   </div>
                 </div>
               </td>
@@ -105,7 +105,7 @@ export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus,
               <td className="px-md py-sm whitespace-nowrap">
                 <RatingValue average={row.average} />
               </td>
-              <td className="px-md py-sm text-ink tabular-nums">{formatInt(row.count)}</td>
+              <td className="sensitive px-md py-sm text-ink tabular-nums">{formatInt(row.count)}</td>
               <td className="px-md py-sm">
                 <StatusSwitch row={row} onToggleStatus={onToggleStatus} />
               </td>
@@ -125,16 +125,16 @@ export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus,
                 src={row.product.imageUrl}
                 alt=""
                 loading="lazy"
-                className="h-avatar-lg w-avatar-lg shrink-0 rounded-control bg-surface-alt object-cover"
+                className="sensitive h-avatar-lg w-avatar-lg shrink-0 rounded-control bg-surface-alt object-cover"
               />
               <div className="flex min-w-zero flex-1 flex-col gap-xs">
-                <span className="font-semibold text-ink">{row.product.title}</span>
+                <span className="sensitive font-semibold text-ink">{row.product.title}</span>
                 <span className="text-caption text-ink-muted">
-                  {PRODUCT_KIND_LABEL[row.product.kind]} · {categoriesOf(row)}
+                  {PRODUCT_KIND_LABEL[row.product.kind]} · <span className="sensitive">{categoriesOf(row)}</span>
                 </span>
                 <div className="flex flex-wrap items-center gap-md text-caption">
                   <RatingValue average={row.average} />
-                  <span className="text-ink-muted">
+                  <span className="sensitive text-ink-muted">
                     {formatInt(row.count)} {row.count === 1 ? 'avaliação' : 'avaliações'}
                   </span>
                   <StatusSwitch row={row} onToggleStatus={onToggleStatus} />
