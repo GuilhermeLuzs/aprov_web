@@ -14,6 +14,7 @@ import { RequireRole } from './RequireRole';
 
 const CompanyOverviewScreen = lazy(() => import('../screens/Company/Overview/CompanyOverviewScreen'));
 const CatalogScreen = lazy(() => import('../screens/Company/Catalog/CatalogScreen'));
+const ItemFormScreen = lazy(() => import('../screens/Company/Catalog/ItemFormScreen'));
 
 export function AppRoutes() {
   return (
@@ -51,6 +52,19 @@ export function AppRoutes() {
               </RequireRole>
             }
           />
+          {['empresa/catalogo/novo/:kind', 'empresa/catalogo/:id/editar'].map((path) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <RequireRole role="empresa">
+                  <Suspense fallback={null}>
+                    <ItemFormScreen />
+                  </Suspense>
+                </RequireRole>
+              }
+            />
+          ))}
           <Route
             path="master"
             element={

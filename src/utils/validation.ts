@@ -72,7 +72,15 @@ export function isValidPhone(text: string): boolean {
   return PHONE_LENGTHS.includes(onlyDigits(text).length);
 }
 
-export type PasswordRules = { length: boolean; letter: boolean; number: boolean };
+export function formatCep(text: string): string {
+  return onlyDigits(text).slice(0, 8).replace(/^(\d{5})(\d)/, '$1-$2');
+}
+
+export function isValidCep(text: string): boolean {
+  return onlyDigits(text).length === 8;
+}
+
+export type PasswordRules ={ length: boolean; letter: boolean; number: boolean };
 
 export function passwordRules(password: string): PasswordRules {
   return {

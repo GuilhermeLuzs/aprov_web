@@ -17,17 +17,17 @@ import { signOut } from '../store/session';
 import { breakpoints, icon } from '../theme';
 import type { Role } from '../types';
 
-type NavItem = { label: string; Icon: LucideIcon; to?: string };
+type NavItem = { label: string; Icon: LucideIcon; to?: string; exact?: boolean };
 
 const ITEMS: Record<Role, NavItem[]> = {
   empresa: [
-    { label: 'Visão geral', Icon: LayoutDashboard, to: '/empresa' },
+    { label: 'Visão geral', Icon: LayoutDashboard, to: '/empresa', exact: true },
     { label: 'Catálogo', Icon: Package, to: '/empresa/catalogo' },
     { label: 'Moedas', Icon: Coins },
     { label: 'Integrações', Icon: Plug },
   ],
   master: [
-    { label: 'Visão geral', Icon: LayoutDashboard, to: '/master' },
+    { label: 'Visão geral', Icon: LayoutDashboard, to: '/master', exact: true },
     { label: 'Busca avançada', Icon: Search },
     { label: 'Filas', Icon: Inbox },
   ],
@@ -39,7 +39,7 @@ const ITEM = 'flex shrink-0 items-center gap-md rounded-control px-md py-sm font
 
 export const PANEL_DRAWER_ID = 'menu-do-painel';
 
-function Item({ label, Icon, to, onNavigate }: NavItem & { onNavigate: () => void }) {
+function Item({ label, Icon, to, exact = false, onNavigate }: NavItem & { onNavigate: () => void }) {
   if (!to) {
     return (
       <span className={`${ITEM} cursor-not-allowed text-ink-faint`} aria-disabled>
@@ -52,7 +52,7 @@ function Item({ label, Icon, to, onNavigate }: NavItem & { onNavigate: () => voi
   return (
     <NavLink
       to={to}
-      end
+      end={exact}
       onClick={onNavigate}
       className={({ isActive }) =>
         `${ITEM} ${isActive ? 'bg-primary-dim text-primary' : 'text-ink-muted hover:bg-surface-alt hover:text-ink'}`
