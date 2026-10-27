@@ -27,7 +27,7 @@ export function CategoryCounts({ label, counts, total, visible = 3 }: Props) {
 
   return (
     <div ref={wrapperRef} className="relative text-caption text-ink-muted">
-      {label}: {shown.map((entry) => `${formatInt(entry.count)} ${entry.label}`).join(' · ')}
+      {label}: <span className="sensitive">{shown.map((entry) => `${formatInt(entry.count)} ${entry.label}`).join(' · ')}</span>
       {hiddenCount > 0 ? ' ' : null}
       {hiddenCount > 0 ? (
         <button
@@ -50,7 +50,7 @@ export function CategoryCounts({ label, counts, total, visible = 3 }: Props) {
           className="absolute top-full left-zero z-10 mt-sm flex w-max max-w-popover flex-col gap-sm rounded-control border border-border bg-surface p-md shadow-card"
         >
           <span className="font-semibold text-ink">Itens por categoria</span>
-          <ul className="flex flex-col gap-xs">
+          <ul className="sensitive flex flex-col gap-xs">
             {counts.map((entry) => (
               <li key={entry.label} className="flex justify-between gap-lg">
                 <span className="text-ink">{entry.label}</span>

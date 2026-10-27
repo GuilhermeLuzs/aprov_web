@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type SubmitEvent } from 'react';
-import { Button, CoinBadge, ColorPicker, IconPicker, SuccessNotice, Tabs, TextField } from '../../../components';
+import { Button, CoinBadge, ColorPicker, IconPicker, Tabs, TextField } from '../../../components';
 import { coin } from '../../../theme';
 import { COIN_ICONS, type CoinSettings, type ProductKind, type RewardRule, type RewardTopic } from '../../../types';
 import {
@@ -14,6 +14,7 @@ import {
 } from '../../../utils/coins';
 import { formatInt } from '../../../utils/format';
 import { RewardTableEditor } from './RewardTableEditor';
+import { showToast } from '../../../store/toasts';
 
 type Props = {
   settings: CoinSettings;
@@ -55,7 +56,6 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
   const [errors, setErrors] = useState<CoinFormErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const [kind, setKind] = useState<ProductKind>('product');
-  const [saved, setSaved] = useState(false);
 
   const coinName = form.name.trim() || 'moedas';
   const value = parseReais(form.valueText);
@@ -67,7 +67,6 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
   const update = (change: Partial<CoinForm>) => {
     const next = { ...form, ...change };
     setForm(next);
-    setSaved(false);
     if (submitted) setErrors(validateCoinForm(next, coin.iconColor, coin.minContrast));
   };
 
@@ -83,11 +82,24 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
       const productErrors = Object.keys(found.rewards ?? {}).some((key) => key.startsWith('product.'));
       if (found.rewards && !productErrors) setKind('service');
       if (found.rewards && productErrors) setKind('product');
+      showToast('error', 'Não deu para salvar. Confira os campos marcados.');
       return;
     }
-    onSave({ ...settings, name: form.name.trim(), color: form.color.trim().toUpperCase(), icon: form.icon, rewards: form.rewards, valueInReais: value });
-    setForm((current) => ({ ...current, name: current.name.trim(), color: current.color.trim().toUpperCase(), valueText: formatReaisInput(value) }));
-    setSaved(true);
+    onSave({
+      ...settings,
+      name: form.name.trim(),
+      color: form.color.trim().toUpperCase(),
+      icon: form.icon,
+      rewards: form.rewards,
+      valueInReais: value,
+    });
+    setForm((current) => ({
+      ...current,
+      name: current.name.trim(),
+      color: current.color.trim().toUpperCase(),
+      valueText: formatReaisInput(value),
+    }));
+    showToast('success', 'Configuração salva. O app já mostra a moeda assim.');
   };
 
   const discard = () => {
@@ -106,7 +118,6 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
         </div>
       </div>
 
-      {saved ? <SuccessNotice text="Configuração salva. O app já mostra a moeda assim." onClose={() => setSaved(false)} /> : null}
       {errorCount > 0 ? (
         <p role="alert" className="rounded-control bg-disagree-dim px-md py-sm font-semibold text-disagree">
           {errorCount === 1 ? 'Confira o campo destacado.' : `Confira os ${errorCount} campos destacados.`}
@@ -138,16 +149,41 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
               inputMode="numeric"
               prefix="R$"
               placeholder="0,10"
-              hint={validValue ? EXAMPLE_AMOUNTS.map((amount) => `${formatInt(amount)} = ${formatReais(amount * value)}`).join(' · ') : undefined}
+              hint={
+                validValue
+                  ? EXAMPLE_AMOUNTS.map((amount) => `${formatInt(amount)} = ${formatReais(amount * value)}`).join(' · ')
+                  : undefined
+              }
               error={errors.valueText}
             />
           </div>
-          <ColorPicker label="Cor" value={form.color} onChange={(color) => update({ color })} presets={coin.presetColors} error={errors.color} />
-          <IconPicker label="Ícone" value={form.icon} onChange={(iconKey) => update({ icon: iconKey })} options={COIN_ICONS} color={form.color} />
+          <ColorPicker
+            label="Cor"
+            value={form.color}
+            onChange={(color) => update({ color })}
+            presets={coin.presetColors}
+            error={errors.color}
+          />
+          <IconPicker
+            label="Ícone"
+            value={form.icon}
+            onChange={(iconKey) => update({ icon: iconKey })}
+            options={COIN_ICONS}
+            color={form.color}
+          />
         </Card>
 
-        <Card title="Quanto cada avaliação rende" aside={<Tabs label="Tipo do item" tabs={KIND_TABS} value={kind} onChange={setKind} size="sm" />}>
-          <RewardTableEditor kind={kind} table={form.rewards[kind]} onChange={updateRule} coinName={coinName} errors={errors.rewards} />
+        <Card
+          title="Quanto cada avaliação rende"
+          aside={<Tabs label="Tipo do item" tabs={KIND_TABS} value={kind} onChange={setKind} size="sm" />}
+        >
+          <RewardTableEditor
+            kind={kind}
+            table={form.rewards[kind]}
+            onChange={updateRule}
+            coinName={coinName}
+            errors={errors.rewards}
+          />
           <p className="rounded-control bg-surface-alt px-md py-sm text-caption text-ink">
             Uma avaliação completa de {kind === 'product' ? 'produto' : 'serviço'} rende{' '}
             <span className="font-semibold">

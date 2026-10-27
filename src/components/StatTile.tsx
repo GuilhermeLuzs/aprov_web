@@ -12,8 +12,8 @@ export function StatTile({ label, value, detail, emphasis = false, children }: P
   return (
     <div className="flex flex-col gap-xs rounded-card border border-border bg-surface p-lg">
       <span className="text-caption text-ink-muted">{label}</span>
-      <span className={`font-display font-bold text-ink ${emphasis ? 'text-hero' : 'text-display'}`}>{value}</span>
-      {detail ? <span className="text-caption text-ink-muted">{detail}</span> : null}
+      <span className={`font-display font-bold text-ink ${emphasis ? 'text-hero' : 'text-display'} sensitive`}>{value}</span>
+      {detail ? <span className="sensitive text-caption text-ink-muted">{detail}</span> : null}
       {children}
     </div>
   );

@@ -6,6 +6,8 @@ import { useCurrentAccount, useCurrentCompany } from '../store/session';
 import { icon } from '../theme';
 import { PANEL_LABEL } from '../types';
 import { PANEL_DRAWER_ID, PanelSidebar } from './PanelSidebar';
+import { PrivacyToggle } from './PrivacyToggle';
+import { ToastStack } from './ToastStack';
 
 export function PanelLayout() {
   const account = useCurrentAccount();
@@ -40,7 +42,8 @@ export function PanelLayout() {
           </div>
           {account ? (
             <div className="flex min-w-zero items-center gap-md">
-              <span className="hidden truncate font-semibold text-ink md:inline">{account.name}</span>
+              <PrivacyToggle />
+              <span className="sensitive hidden truncate font-semibold text-ink md:inline">{account.name}</span>
               <div className="shrink-0">
                 <CompanyAvatar name={account.name} imageUrl={company?.logoUrl} />
               </div>
@@ -54,6 +57,7 @@ export function PanelLayout() {
           <Outlet />
         </main>
       </div>
+      <ToastStack />
     </div>
   );
 }

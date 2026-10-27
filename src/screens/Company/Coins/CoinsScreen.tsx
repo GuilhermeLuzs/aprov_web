@@ -4,6 +4,7 @@ import { coinSettingsOrDefault, saveCoinSettings, setCoinsEnabled, useCoinSettin
 import { useCurrentAccount } from '../../../store/session';
 import { CoinPerformance } from './CoinPerformance';
 import { CoinSettingsForm } from './CoinSettingsForm';
+import { showToast } from '../../../store/toasts';
 
 type CoinTab = 'performance' | 'settings';
 
@@ -22,13 +23,16 @@ export default function CoinsScreen() {
   const coinName = settings.name || 'moedas';
 
   const toggle = (next: boolean) => {
-    if (next) setCoinsEnabled(companyId, true);
-    else setConfirmingOff(true);
+    if (next) {
+      setCoinsEnabled(companyId, true);
+      showToast('success', 'Moedas ligadas. Os clientes voltam a ganhar e resgatar.');
+    } else setConfirmingOff(true);
   };
 
   const turnOff = () => {
     setCoinsEnabled(companyId, false);
     setConfirmingOff(false);
+    showToast('success', 'Moedas desligadas.');
   };
 
   return (

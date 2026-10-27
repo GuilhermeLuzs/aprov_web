@@ -12,12 +12,13 @@ type Props = {
   header?: ReactNode;
   subtitle?: ReactNode;
   footer?: ReactNode;
+  sensitiveTitle?: boolean;
   children: ReactNode;
 };
 
 const WIDTH: Record<Size, string> = { sm: 'max-w-dialog', lg: 'max-w-modal' };
 
-export function Modal({ open, onClose, title, size = 'lg', header, subtitle, footer, children }: Props) {
+export function Modal({ open, onClose, title, size = 'lg', header, subtitle, footer, sensitiveTitle = false, children }: Props) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -80,7 +81,7 @@ export function Modal({ open, onClose, title, size = 'lg', header, subtitle, foo
           <div className="flex min-w-zero items-center gap-md">
             {header}
             <div className="flex min-w-zero flex-col gap-xs">
-              <h2 id={titleId} className="font-display font-semibold text-title text-ink">
+              <h2 id={titleId} className={`font-display font-semibold text-title text-ink ${sensitiveTitle ? 'sensitive' : ''}`}>
                 {title}
               </h2>
               {subtitle}

@@ -91,7 +91,9 @@ export default function CompanyOverviewScreen() {
   const heading = (
     <div className="flex flex-col gap-xs">
       <h1 className="font-display font-bold text-display text-ink">Visão geral</h1>
-      <p className="text-ink-muted">Como os clientes avaliaram os itens da {account?.name ?? 'sua empresa'}.</p>
+      <p className="text-ink-muted">
+        Como os clientes avaliaram os itens da <span className="sensitive">{account?.name ?? 'sua empresa'}</span>.
+      </p>
     </div>
   );
 

@@ -65,18 +65,19 @@ function ItemMetrics({ row, reviews, onClose }: Props & { row: CatalogRow }) {
       open
       onClose={onClose}
       title={product.title}
+      sensitiveTitle
       header={
         <img
           src={product.imageUrl}
           alt=""
-          className="h-avatar-lg w-avatar-lg shrink-0 rounded-control bg-surface-alt object-cover"
+          className="sensitive h-avatar-lg w-avatar-lg shrink-0 rounded-control bg-surface-alt object-cover"
         />
       }
       subtitle={
         <div className="flex flex-wrap items-center gap-sm text-caption text-ink-muted">
           <span>{PRODUCT_KIND_LABEL[product.kind]}</span>
           <span aria-hidden>·</span>
-          <span>{categories}</span>
+          <span className="sensitive">{categories}</span>
           <StatusBadge status={product.status} />
         </div>
       }

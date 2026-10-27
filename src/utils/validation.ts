@@ -94,3 +94,12 @@ export function isValidPassword(password: string): boolean {
   const rules = passwordRules(password);
   return rules.length && rules.letter && rules.number;
 }
+
+export function isValidHttpsUrl(text: string): boolean {
+  try {
+    const url = new URL(text.trim());
+    return url.protocol === 'https:' && url.hostname.includes('.');
+  } catch {
+    return false;
+  }
+}

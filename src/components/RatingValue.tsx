@@ -12,7 +12,7 @@ export function RatingValue({ average }: { average: number | null }) {
   if (average === null) return <span className="text-caption text-ink-faint">Sem nota</span>;
 
   return (
-    <span className="inline-flex items-center gap-sm font-semibold text-ink tabular-nums">
+    <span className="sensitive inline-flex items-center gap-sm font-semibold text-ink tabular-nums">
       <span className={`h-legend-key w-legend-key shrink-0 rounded-pill ${RATING_TONE_FILL[ratingTone(average)]}`} aria-hidden />
       {formatRating(average)}
     </span>

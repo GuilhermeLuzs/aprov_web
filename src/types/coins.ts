@@ -116,3 +116,23 @@ export type CoinRedemption = {
   coins: number;
   coupon: string;
 };
+
+export type CouponSource = 'automatic' | 'manual';
+
+export type IntegrationSettings = {
+  companyId: string;
+  couponSource?: CouponSource;
+  apiKey: string;
+  webhookUrl: string;
+};
+
+export type CouponCode = { code: string; deliveredAt?: string };
+
+export type CouponOffer = {
+  id: string;
+  companyId: string;
+  title: string;
+  coinCost: number;
+  validUntil: string;
+  codes: CouponCode[];
+};

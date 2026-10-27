@@ -37,7 +37,7 @@ export { AmountUnitField } from './AmountUnitField';
 export { ChoiceGroup } from './ChoiceGroup';
 export { MediaPicker } from './MediaPicker';
 export { MenuButton } from './MenuButton';
-export { SuccessNotice } from './SuccessNotice';
+export { ToastMessage } from './ToastMessage';
 export { CityPicker } from './CityPicker';
 export { TextAreaField } from './TextAreaField';
 export { COIN_ICON, CoinBadge } from './CoinBadge';

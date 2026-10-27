@@ -104,6 +104,8 @@
   --radius-phone-screen: 32px;
   --radius-pill: 999px;
 
+  --blur-sensitive: 6px;
+
   --shadow-card: 0 8px 24px rgba(42, 33, 28, 0.08);
   --shadow-phone: 0 24px 48px rgba(42, 33, 28, 0.22);
   --shadow-edge-below: 0 6px 12px -8px rgba(42, 33, 28, 0.25);
@@ -111,6 +113,7 @@
 
   --font-display: "Archivo", sans-serif;
   --font-body: "Figtree", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -146,6 +149,14 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1280px;
+}
+
+@layer utilities {
+  [data-private] .sensitive,
+  [data-private] .recharts-yAxis .recharts-cartesian-axis-tick-value {
+    filter: blur(var(--blur-sensitive));
+    user-select: none;
+  }
 }
 
 @utility star-pattern {

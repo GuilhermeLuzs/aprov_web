@@ -15,6 +15,7 @@ type Props = {
   revealable?: boolean;
   counter?: string;
   prefix?: string;
+  sensitive?: boolean;
 };
 
 export function TextField({
@@ -30,6 +31,7 @@ export function TextField({
   revealable = false,
   counter,
   prefix,
+  sensitive = false,
 }: Props) {
   const id = useId();
   const [revealed, setRevealed] = useState(false);
@@ -60,7 +62,7 @@ export function TextField({
           inputMode={inputMode}
           aria-invalid={error ? true : undefined}
           aria-describedby={note ? `${id}-nota` : undefined}
-          className="h-full min-w-zero flex-1 rounded-control bg-surface px-md text-ink outline-none placeholder:text-ink-faint"
+          className={`h-full min-w-zero flex-1 rounded-control bg-surface px-md text-ink outline-none placeholder:text-ink-faint ${sensitive ? 'sensitive' : ''}`}
         />
         {revealable ? (
           <button

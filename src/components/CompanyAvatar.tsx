@@ -18,14 +18,14 @@ export function CompanyAvatar({ name, imageUrl }: Props) {
       <img
         src={imageUrl}
         alt={`Foto de ${name}`}
-        className="h-avatar-md w-avatar-md shrink-0 rounded-pill border border-border object-cover"
+        className="sensitive h-avatar-md w-avatar-md shrink-0 rounded-pill border border-border object-cover"
       />
     );
   }
 
   return (
     <span
-      className="flex h-avatar-md w-avatar-md shrink-0 items-center justify-center rounded-pill bg-primary-dim font-display font-bold text-caption text-primary"
+      className="sensitive flex h-avatar-md w-avatar-md shrink-0 items-center justify-center rounded-pill bg-primary-dim font-display font-bold text-caption text-primary"
       aria-hidden
     >
       {initialsOf(name)}

@@ -16,7 +16,9 @@ export function ChartTooltip({ active, payload, label, formatLabel, formatValue,
     <div className="flex flex-col gap-xs rounded-control border border-border bg-surface p-md shadow-card">
       <div className="flex flex-col">
         <span className="text-caption text-ink-muted">{formatLabel(String(label ?? ''))}</span>
-        {formatDetail ? <span className="font-semibold text-caption text-ink">{formatDetail(payload[0].payload)}</span> : null}
+        {formatDetail ? (
+          <span className="sensitive font-semibold text-caption text-ink">{formatDetail(payload[0].payload)}</span>
+        ) : null}
       </div>
       <ul className="flex flex-col gap-xs">
         {payload.map((row) => (
@@ -26,7 +28,7 @@ export function ChartTooltip({ active, payload, label, formatLabel, formatValue,
               style={{ backgroundColor: row.color }}
               aria-hidden
             />
-            <span className="font-semibold text-ink tabular-nums">{formatValue(Number(row.value))}</span>
+            <span className="sensitive font-semibold text-ink tabular-nums">{formatValue(Number(row.value))}</span>
             <span className="text-caption text-ink-muted">{row.name}</span>
           </li>
         ))}
