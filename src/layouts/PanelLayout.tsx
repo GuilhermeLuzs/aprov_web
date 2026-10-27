@@ -15,8 +15,8 @@ export function PanelLayout() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-zero z-10 border-b border-border bg-surface">
-        <div className="flex h-header items-center justify-between gap-lg px-lg lg:px-xxl">
+      <header className="sticky top-zero z-10 h-header border-b border-border bg-surface">
+        <div className="flex h-full items-center justify-between gap-lg px-lg lg:px-xxl">
           <div className="flex min-w-zero items-center gap-sm">
             {account ? (
               <button

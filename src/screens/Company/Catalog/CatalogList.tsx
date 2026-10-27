@@ -11,17 +11,18 @@ type Props = {
   onSort: (key: SortKey) => void;
   onShowMetrics: (row: CatalogRow) => void;
   onToggleStatus: (row: CatalogRow) => void;
+  onEdit: (row: CatalogRow) => void;
 };
 
 function categoriesOf(row: CatalogRow): string {
   return row.product.categories.map((category) => CATEGORY_LABEL[category]).join(', ');
 }
 
-function Actions({ row, onShowMetrics }: { row: CatalogRow } & Pick<Props, 'onShowMetrics'>) {
+function Actions({ row, onShowMetrics, onEdit }: { row: CatalogRow } & Pick<Props, 'onShowMetrics' | 'onEdit'>) {
   return (
     <div className="flex items-center justify-end gap-xs">
       <IconButton Icon={ChartLine} label={`Ver as notas de ${row.product.title}`} onClick={() => onShowMetrics(row)} />
-      <IconButton Icon={Pencil} label={`Editar ${row.product.title}`} disabled />
+      <IconButton Icon={Pencil} label={`Editar ${row.product.title}`} onClick={() => onEdit(row)} />
     </div>
   );
 }
@@ -61,7 +62,7 @@ function SortHeader({ label, sortKey, sort, onSort, fill = false }: { label: str
   );
 }
 
-export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus }: Props) {
+export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus, onEdit }: Props) {
   return (
     <>
       <table className="hidden w-full lg:table">
@@ -109,7 +110,7 @@ export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus 
                 <StatusSwitch row={row} onToggleStatus={onToggleStatus} />
               </td>
               <td className="px-md py-sm">
-                <Actions row={row} onShowMetrics={onShowMetrics} />
+                <Actions row={row} onShowMetrics={onShowMetrics} onEdit={onEdit} />
               </td>
             </tr>
           ))}
@@ -140,7 +141,7 @@ export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus 
                 </div>
               </div>
             </div>
-            <Actions row={row} onShowMetrics={onShowMetrics} />
+            <Actions row={row} onShowMetrics={onShowMetrics} onEdit={onEdit} />
           </li>
         ))}
       </ul>
