@@ -13,6 +13,7 @@ type Props = {
   autoComplete?: string;
   inputMode?: 'text' | 'email' | 'numeric' | 'tel';
   revealable?: boolean;
+  counter?: string;
 };
 
 export function TextField({
@@ -26,6 +27,7 @@ export function TextField({
   autoComplete,
   inputMode,
   revealable = false,
+  counter,
 }: Props) {
   const id = useId();
   const [revealed, setRevealed] = useState(false);
@@ -34,9 +36,12 @@ export function TextField({
 
   return (
     <div className="flex flex-col gap-xs">
-      <label htmlFor={id} className="font-semibold text-caption text-ink">
-        {label}
-      </label>
+      <div className="flex items-baseline justify-between gap-md">
+        <label htmlFor={id} className="font-semibold text-caption text-ink">
+          {label}
+        </label>
+        {counter ? <span className="text-caption text-ink-muted tabular-nums">{counter}</span> : null}
+      </div>
       <div
         className={`flex h-control items-center rounded-control border bg-surface transition-colors focus-within:border-primary ${
           error ? 'border-disagree' : 'border-border'
