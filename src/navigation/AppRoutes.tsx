@@ -15,6 +15,7 @@ import { RequireRole } from './RequireRole';
 const CompanyOverviewScreen = lazy(() => import('../screens/Company/Overview/CompanyOverviewScreen'));
 const CatalogScreen = lazy(() => import('../screens/Company/Catalog/CatalogScreen'));
 const ItemFormScreen = lazy(() => import('../screens/Company/Catalog/ItemFormScreen'));
+const CoinsScreen = lazy(() => import('../screens/Company/Coins/CoinsScreen'));
 
 export function AppRoutes() {
   return (
@@ -65,6 +66,16 @@ export function AppRoutes() {
               }
             />
           ))}
+          <Route
+            path="empresa/moedas"
+            element={
+              <RequireRole role="empresa">
+                <Suspense fallback={null}>
+                  <CoinsScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
           <Route
             path="master"
             element={

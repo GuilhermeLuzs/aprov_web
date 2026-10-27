@@ -14,6 +14,7 @@ type Props = {
   inputMode?: 'text' | 'email' | 'numeric' | 'tel';
   revealable?: boolean;
   counter?: string;
+  prefix?: string;
 };
 
 export function TextField({
@@ -28,6 +29,7 @@ export function TextField({
   inputMode,
   revealable = false,
   counter,
+  prefix,
 }: Props) {
   const id = useId();
   const [revealed, setRevealed] = useState(false);
@@ -47,6 +49,7 @@ export function TextField({
           error ? 'border-disagree' : 'border-border'
         }`}
       >
+        {prefix ? <span className="shrink-0 pl-md font-semibold text-ink-muted">{prefix}</span> : null}
         <input
           id={id}
           type={inputType}
