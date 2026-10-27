@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { BriefcaseBusiness, Package } from 'lucide-react';
 import {
   Button,
@@ -11,7 +11,6 @@ import {
   PageSizeSelect,
   Pagination,
   SearchField,
-  SuccessNotice,
 } from '../../../components';
 import { reviews } from '../../../mocks';
 import { setProductStatus, useProducts } from '../../../store/catalog';
@@ -41,16 +40,14 @@ import { plural } from '../../../utils/format';
 import { pageCountOf, pageSlice } from '../../../utils/pagination';
 import { CatalogList } from './CatalogList';
 import { ItemMetricsModal } from './ItemMetricsModal';
+import { showToast } from '../../../store/toasts';
 
 const PAGE_SIZES = [5, 10, 25, 50] as const;
-const NOTICE_MS = 6000;
 
 const NEW_ITEM_OPTIONS = [
   { label: 'Novo produto', description: 'Algo que o cliente compra e recebe.', to: '/empresa/catalogo/novo/produto', Icon: Package },
   { label: 'Novo serviço', description: 'Algo que você faz para o cliente.', to: '/empresa/catalogo/novo/servico', Icon: BriefcaseBusiness },
 ];
-
-type CatalogLocationState = { notice?: string } | null;
 
 const STATUS_OPTIONS = (Object.keys(PRODUCT_STATUS_LABEL) as ProductStatus[]).map((status) => ({
   value: status,
@@ -73,20 +70,7 @@ export default function CatalogScreen() {
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
   const [metricsRow, setMetricsRow] = useState<CatalogRow | null>(null);
   const [deactivating, setDeactivating] = useState<CatalogRow | null>(null);
-  const location = useLocation();
   const navigate = useNavigate();
-  const notice = (location.state as CatalogLocationState)?.notice;
-
-  const dismissNotice = useCallback(
-    () => navigate(location.pathname, { replace: true, state: null }),
-    [navigate, location.pathname],
-  );
-
-  useEffect(() => {
-    if (!notice) return;
-    const timer = setTimeout(dismissNotice, NOTICE_MS);
-    return () => clearTimeout(timer);
-  }, [notice, dismissNotice]);
 
   const rows = catalogRows(companyProducts, companyReviews);
   const visibleRows = sortRows(filterRows(rows, filters), sort);
@@ -110,11 +94,17 @@ export default function CatalogScreen() {
 
   const toggleStatus = (row: CatalogRow) => {
     if (row.product.status === 'active') setDeactivating(row);
-    else setProductStatus(row.product.id, 'active');
+    else {
+      setProductStatus(row.product.id, 'active');
+      showToast('success', `"${row.product.title}" ativado. Já aparece no app.`);
+    }
   };
 
   const confirmDeactivation = () => {
-    if (deactivating) setProductStatus(deactivating.product.id, 'inactive');
+    if (deactivating) {
+      setProductStatus(deactivating.product.id, 'inactive');
+      showToast('success', `"${deactivating.product.title}" desativado. Saiu do app.`);
+    }
     setDeactivating(null);
   };
 
@@ -134,12 +124,13 @@ export default function CatalogScreen() {
       <div className="flex flex-col gap-lg md:flex-row md:items-start md:justify-between">
         <div className="flex flex-col gap-xs">
           <h1 className="font-display font-bold text-display text-ink">Catálogo</h1>
-          <p className="text-ink-muted">Os produtos e serviços que a {account?.name ?? 'sua empresa'} oferece para avaliação.</p>
+          <p className="text-ink-muted">
+            Os produtos e serviços que a {account?.name ?? 'sua empresa'} oferece para
+            avaliação.
+          </p>
         </div>
         <MenuButton label="Cadastrar item" items={NEW_ITEM_OPTIONS} />
       </div>
-
-      {notice ? <SuccessNotice text={notice} onClose={dismissNotice} /> : null}
 
       {companyProducts.length === 0 ? (
         <EmptyNotice

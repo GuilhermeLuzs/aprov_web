@@ -13,13 +13,15 @@ type Props = {
   stackOnWide?: boolean;
 };
 
+const COLUMNS: Record<number, string> = { 2: 'sm:grid-cols-2', 3: 'sm:grid-cols-3' };
+
 export function ChoiceGroup({ label, options, value, onChange, error, stackOnWide = false }: Props) {
   const name = useId();
 
   return (
     <fieldset className="flex flex-col gap-sm" aria-describedby={error ? `${name}-erro` : undefined}>
       <legend className="mb-xs font-semibold text-caption text-ink">{label}</legend>
-      <div className={`grid gap-sm sm:grid-cols-3 ${stackOnWide ? 'xl:grid-cols-1' : ''}`}>
+      <div className={`grid gap-sm ${COLUMNS[options.length] ?? 'sm:grid-cols-3'} ${stackOnWide ? 'xl:grid-cols-1' : ''}`}>
         {options.map((option) => {
           const checked = option.value === value;
           return (

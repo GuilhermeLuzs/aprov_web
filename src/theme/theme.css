@@ -111,6 +111,7 @@
 
   --font-display: "Archivo", sans-serif;
   --font-body: "Figtree", sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;

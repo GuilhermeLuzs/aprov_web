@@ -2,6 +2,8 @@ export { accounts, testCompanyAccount, testMasterAccount } from './accounts';
 export { mockToday } from './clock';
 export { coinSettings, defaultCoinSettings } from './coins';
 export { companies } from './companies';
+export { couponOffers } from './coupons';
+export { couponTemplate, integrationSettings } from './integrations';
 export { products } from './products';
 export { redemptions } from './redemptions';
 export { reviews } from './reviews';

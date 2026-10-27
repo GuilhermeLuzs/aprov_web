@@ -16,6 +16,7 @@ const CompanyOverviewScreen = lazy(() => import('../screens/Company/Overview/Com
 const CatalogScreen = lazy(() => import('../screens/Company/Catalog/CatalogScreen'));
 const ItemFormScreen = lazy(() => import('../screens/Company/Catalog/ItemFormScreen'));
 const CoinsScreen = lazy(() => import('../screens/Company/Coins/CoinsScreen'));
+const CouponsScreen = lazy(() => import('../screens/Company/Coupons/CouponsScreen'));
 
 export function AppRoutes() {
   return (
@@ -72,6 +73,16 @@ export function AppRoutes() {
               <RequireRole role="empresa">
                 <Suspense fallback={null}>
                   <CoinsScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="empresa/cupons"
+            element={
+              <RequireRole role="empresa">
+                <Suspense fallback={null}>
+                  <CouponsScreen />
                 </Suspense>
               </RequireRole>
             }

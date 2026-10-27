@@ -39,6 +39,7 @@ import {
   type ItemFormErrors,
 } from '../../../utils/itemForm';
 import { formatCep } from '../../../utils/validation';
+import { showToast } from '../../../store/toasts';
 
 const CATALOG_PATH = '/empresa/catalogo';
 const DEFAULT_REWARD = 20;
@@ -93,9 +94,7 @@ export default function ItemFormScreen() {
   const editing = id ? findProduct(id) : undefined;
   const newKind = kindSlug ? KIND_BY_SLUG[kindSlug] : undefined;
 
-  const [form, setForm] = useState<ItemForm>(() =>
-    editing ? formFromProduct(editing) : emptyItemForm(newKind ?? 'product'),
-  );
+  const [form, setForm] = useState<ItemForm>(() => (editing ? formFromProduct(editing) : emptyItemForm(newKind ?? 'product')));
   const [errors, setErrors] = useState<ItemFormErrors>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -118,12 +117,14 @@ export default function ItemFormScreen() {
     setSubmitted(true);
     setErrors(found);
     if (Object.keys(found).length > 0) {
+      showToast('error', 'Não deu para salvar. Confira os campos marcados.');
       focusFirstError();
       return;
     }
     if (editing) {
       updateProduct({ ...editing, ...productFields(form) });
-      navigate(CATALOG_PATH, { state: { notice: `Alterações em "${form.title.trim()}" salvas.` } });
+      showToast('success', `Alterações em "${form.title.trim()}" salvas.`);
+      navigate(CATALOG_PATH);
     } else if (account?.companyId) {
       addProduct({
         ...productFields(form),
@@ -132,7 +133,8 @@ export default function ItemFormScreen() {
         coinsReward: DEFAULT_REWARD,
         xpReward: DEFAULT_REWARD,
       });
-      navigate(CATALOG_PATH, { state: { notice: `${PRODUCT_KIND_LABEL[form.kind]} "${form.title.trim()}" cadastrado e ativo.` } });
+      showToast('success', `${PRODUCT_KIND_LABEL[form.kind]} "${form.title.trim()}" cadastrado e ativo.`);
+      navigate(CATALOG_PATH);
     }
   };
 

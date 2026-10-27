@@ -6,6 +6,7 @@ import { useCurrentAccount, useCurrentCompany } from '../store/session';
 import { icon } from '../theme';
 import { PANEL_LABEL } from '../types';
 import { PANEL_DRAWER_ID, PanelSidebar } from './PanelSidebar';
+import { ToastStack } from './ToastStack';
 
 export function PanelLayout() {
   const account = useCurrentAccount();
@@ -54,6 +55,7 @@ export function PanelLayout() {
           <Outlet />
         </main>
       </div>
+      <ToastStack />
     </div>
   );
 }

@@ -1,17 +1,6 @@
 import { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
-import {
-  Coins,
-  Inbox,
-  LayoutDashboard,
-  LogOut,
-  Package,
-  Plug,
-  Search,
-  UserRound,
-  X,
-  type LucideIcon,
-} from 'lucide-react';
+import { Coins, Inbox, LayoutDashboard, LogOut, Package, Ticket, Search, UserRound, X, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '../components';
 import { signOut } from '../store/session';
 import { breakpoints, icon } from '../theme';
@@ -24,7 +13,7 @@ const ITEMS: Record<Role, NavItem[]> = {
     { label: 'Visão geral', Icon: LayoutDashboard, to: '/empresa', exact: true },
     { label: 'Catálogo', Icon: Package, to: '/empresa/catalogo' },
     { label: 'Moedas', Icon: Coins, to: '/empresa/moedas' },
-    { label: 'Integrações', Icon: Plug },
+    { label: 'Cupons', Icon: Ticket, to: '/empresa/cupons' },
   ],
   master: [
     { label: 'Visão geral', Icon: LayoutDashboard, to: '/master', exact: true },
