@@ -40,3 +40,7 @@ export { MenuButton } from './MenuButton';
 export { SuccessNotice } from './SuccessNotice';
 export { CityPicker } from './CityPicker';
 export { TextAreaField } from './TextAreaField';
+export { COIN_ICON, CoinBadge } from './CoinBadge';
+export { ColorPicker } from './ColorPicker';
+export { IconPicker } from './IconPicker';
+export { Tabs } from './Tabs';
