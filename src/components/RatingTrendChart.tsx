@@ -4,7 +4,7 @@ import { ChartCard, type LegendItem } from './ChartCard';
 import { ChartTooltip } from './ChartTooltip';
 import { chart } from '../theme';
 import { CHARACTERISTICS, CHARACTERISTIC_LABEL } from '../types';
-import { formatDay, formatLongDay, formatRating } from '../utils/format';
+import { formatDay, formatLongDay, formatRating, plural } from '../utils/format';
 import type { DayAverages } from '../utils/overview';
 
 const LINES = [
@@ -64,6 +64,10 @@ export function RatingTrendChart({ data, title, description }: Props) {
                 label={props.label}
                 formatLabel={formatLongDay}
                 formatValue={formatRating}
+                formatDetail={(point) => {
+                  const { count } = point as DayAverages;
+                  return plural(count, 'avaliação', 'avaliações');
+                }}
               />
             )}
           />

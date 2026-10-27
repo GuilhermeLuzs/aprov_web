@@ -1,6 +1,6 @@
 import { CHARACTERISTICS, type Characteristic, type Product, type Review, type Sentiment, type Tag } from '../types';
 
-export type PeriodKey = 'today' | '7d' | '30d' | 'month' | 'lastMonth' | 'custom';
+export type PeriodKey = '7d' | '30d' | 'month' | 'lastMonth' | 'custom';
 
 export type DayRange = { start: string; end: string };
 
@@ -23,7 +23,6 @@ export function dayOf(review: Review): string {
 }
 
 export function presetRange(key: Exclude<PeriodKey, 'custom'>, today: string): DayRange {
-  if (key === 'today') return { start: today, end: today };
   if (key === '7d') return { start: shiftDay(today, -6), end: today };
   if (key === '30d') return { start: shiftDay(today, -29), end: today };
   const monthStart = `${today.slice(0, 8)}01`;
@@ -136,7 +135,7 @@ export function countByWeekday(reviews: Review[]): number[] {
   return counts;
 }
 
-export type DayAverages = { day: string } & Averages;
+export type DayAverages = { day: string; count: number } & Averages;
 
 export function averagesByDay(reviews: Review[]): DayAverages[] {
   const byDay = new Map<string, Review[]>();
@@ -146,5 +145,5 @@ export function averagesByDay(reviews: Review[]): DayAverages[] {
   });
   return [...byDay.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([day, list]) => ({ day, ...averagesOf(list) }));
+    .map(([day, list]) => ({ day, count: list.length, ...averagesOf(list) }));
 }
