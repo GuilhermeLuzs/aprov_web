@@ -23,7 +23,7 @@ const ITEMS: Record<Role, NavItem[]> = {
   empresa: [
     { label: 'Visão geral', Icon: LayoutDashboard, to: '/empresa', exact: true },
     { label: 'Catálogo', Icon: Package, to: '/empresa/catalogo' },
-    { label: 'Moedas', Icon: Coins },
+    { label: 'Moedas', Icon: Coins, to: '/empresa/moedas' },
     { label: 'Integrações', Icon: Plug },
   ],
   master: [
