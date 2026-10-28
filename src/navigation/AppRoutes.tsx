@@ -3,7 +3,6 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import { PanelLayout } from '../layouts/PanelLayout';
 import { PublicLayout } from '../layouts/PublicLayout';
 import {
-  CompanyLandingScreen,
   CompanySignUpScreen,
   LandingScreen,
   LoginScreen,
@@ -12,6 +11,7 @@ import {
 } from '../screens';
 import { RequireRole } from './RequireRole';
 
+const CompanyLandingScreen = lazy(() => import('../screens/Public/CompanyLanding/CompanyLandingScreen'));
 const CompanyOverviewScreen = lazy(() => import('../screens/Company/Overview/CompanyOverviewScreen'));
 const CatalogScreen = lazy(() => import('../screens/Company/Catalog/CatalogScreen'));
 const ItemFormScreen = lazy(() => import('../screens/Company/Catalog/ItemFormScreen'));
@@ -27,7 +27,14 @@ export function AppRoutes() {
         </Route>
 
         <Route element={<PublicLayout audience="empresas" />}>
-          <Route path="empresas" element={<CompanyLandingScreen />} />
+          <Route
+            path="empresas"
+            element={
+              <Suspense fallback={null}>
+                <CompanyLandingScreen />
+              </Suspense>
+            }
+          />
           <Route path="login" element={<LoginScreen />} />
           <Route path="cadastro" element={<CompanySignUpScreen />} />
           <Route path="recuperar-senha" element={<PasswordRecoveryScreen />} />

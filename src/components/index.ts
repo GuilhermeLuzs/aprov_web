@@ -6,6 +6,7 @@ export { FeatureCard } from './FeatureCard';
 export { FormCard } from './FormCard';
 export { MauricioMascot } from './MauricioMascot';
 export type { MauricioMood } from './MauricioMascot';
+export { BrowserMockup } from './BrowserMockup';
 export { PhoneMockup } from './PhoneMockup';
 export { SectionHeading } from './SectionHeading';
 export { SelectField } from './SelectField';

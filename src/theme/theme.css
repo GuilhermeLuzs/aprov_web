@@ -97,6 +97,7 @@
 
   --aspect-banner-mascot: 1100 / 950;
   --aspect-phone: 390 / 844;
+  --aspect-desktop: 1440 / 900;
 
   --radius-card: 16px;
   --radius-control: 12px;
@@ -162,7 +163,11 @@
 @utility star-pattern {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,6 62,38 96,39 69,59 79,92 50,73 21,92 31,59 4,39 38,38' fill='%23ffffff' fill-opacity='0.12'/%3E%3C/svg%3E");
   background-size: var(--spacing-star-pattern) var(--spacing-star-pattern);
-  mask-image: linear-gradient(to right, black 25%, transparent 70%);
+  mask-image: linear-gradient(var(--star-fade, to right), black 25%, transparent 70%);
+}
+
+@utility star-fade-left {
+  --star-fade: to left;
 }
 
 @layer base {
