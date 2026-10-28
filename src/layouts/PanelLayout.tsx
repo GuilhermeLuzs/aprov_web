@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Outlet } from 'react-router';
 import { Menu } from 'lucide-react';
 import { BrandMark, CompanyAvatar } from '../components';
+import { setPagePrivate, useDataHidden } from '../store/privacy';
 import { useCurrentAccount, useCurrentCompany } from '../store/session';
 import { icon } from '../theme';
 import { PANEL_LABEL } from '../types';
@@ -14,6 +15,12 @@ export function PanelLayout() {
   const company = useCurrentCompany();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+  const dataHidden = useDataHidden();
+
+  useEffect(() => {
+    setPagePrivate(dataHidden);
+    return () => setPagePrivate(false);
+  }, [dataHidden]);
 
   return (
     <div className="flex min-h-screen flex-col">

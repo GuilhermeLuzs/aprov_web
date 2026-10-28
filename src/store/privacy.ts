@@ -10,13 +10,12 @@ function readStored(): boolean {
   }
 }
 
-function applyToPage(hidden: boolean) {
-  if (hidden) document.documentElement.dataset.private = '';
+export function setPagePrivate(isPrivate: boolean) {
+  if (isPrivate) document.documentElement.dataset.private = '';
   else delete document.documentElement.dataset.private;
 }
 
 let hidden = readStored();
-applyToPage(hidden);
 const listeners = new Set<() => void>();
 
 function subscribe(listener: () => void) {
@@ -35,7 +34,6 @@ function writeStored(value: boolean): boolean {
 
 export function toggleDataHidden() {
   hidden = !hidden;
-  applyToPage(hidden);
   writeStored(hidden);
   listeners.forEach((listener) => listener());
 }
