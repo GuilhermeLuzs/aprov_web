@@ -36,11 +36,11 @@ export type CaseResolution = {
   target: ReportTarget;
   decision: CaseDecision;
   note: string;
-  by: string;
+  byId: string;
   at: string;
 };
 
-export type Assignment = { queue: 'report' | 'ticket'; key: string; to: string };
+export type Assignment = { queue: 'report' | 'ticket'; key: string; toId: string };
 
 export type TicketStatus = 'open' | 'waiting' | 'resolved';
 
@@ -64,7 +64,7 @@ export const TICKET_TOPIC_LABEL: Record<TicketTopic, string> = {
 export type TicketMessage = {
   id: string;
   from: 'requester' | 'admin';
-  author: string;
+  adminId?: string;
   text: string;
   createdAt: string;
 };

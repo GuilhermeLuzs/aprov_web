@@ -2,7 +2,7 @@ import type { AccessEvent, Customer } from '../types';
 import { testMasterAccount } from './accounts';
 import { customers } from './platform';
 
-const by = testMasterAccount.name;
+const byId = testMasterAccount.id;
 const taken = new Set<string>();
 
 function pickCustomer(fits: (customer: Customer) => boolean): Customer {
@@ -33,7 +33,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'fakeAccount',
     note: 'Cadastro com o mesmo CPF de outra conta, segundo a verificação automática.',
     createdAt: '2026-07-15T14:10:00.000Z',
-    by,
+    byId,
   },
   {
     id: 'ae2',
@@ -42,7 +42,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'mistake',
     note: 'A verificação confundiu dois CPFs parecidos. Documento conferido pelo suporte.',
     createdAt: '2026-07-20T10:25:00.000Z',
-    by,
+    byId,
   },
   {
     id: 'ae3',
@@ -51,7 +51,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'spam',
     note: 'Colou o mesmo link de loja em 14 comentários seguidos.',
     createdAt: '2026-08-01T09:40:00.000Z',
-    by,
+    byId,
   },
   {
     id: 'ae4',
@@ -60,7 +60,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'appeal',
     note: 'Explicou no recurso que não sabia da regra. Orientado a não repetir.',
     createdAt: '2026-08-09T16:05:00.000Z',
-    by,
+    byId,
   },
   {
     id: 'ae5',
@@ -69,7 +69,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'misleading',
     note: 'Fotos do jogo de panelas mostravam 7 peças; o item tem 5. Várias denúncias no mesmo dia.',
     createdAt: '2026-09-10T11:30:00.000Z',
-    by,
+    byId,
   },
   {
     id: 'ae6',
@@ -78,7 +78,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'resolved',
     note: 'Fotos e descrição corrigidas pela empresa e conferidas.',
     createdAt: '2026-09-18T15:45:00.000Z',
-    by,
+    byId,
   },
   {
     id: 'ae7',
@@ -87,7 +87,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'harassment',
     note: 'Comentários ofensivos repetidos contra o mesmo usuário, mesmo depois do aviso por e-mail.',
     createdAt: harasser.lastActiveAt,
-    by,
+    byId,
   },
   {
     id: 'ae8',
@@ -96,7 +96,7 @@ export const accessEvents: AccessEvent[] = [
     reason: 'fakeReview',
     note: 'Denunciada por repetir o mesmo comentário em avaliações de empresas diferentes. Textos conferidos.',
     createdAt: copier.lastActiveAt,
-    by,
+    byId,
   },
   {
     id: 'ae9',
@@ -105,6 +105,6 @@ export const accessEvents: AccessEvent[] = [
     reason: 'coupons',
     note: 'Três clientes relataram códigos de cupom recusados no site da empresa. Aguardando retorno.',
     createdAt: '2026-10-23T17:20:00.000Z',
-    by,
+    byId,
   },
 ];

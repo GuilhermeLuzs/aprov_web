@@ -61,5 +61,5 @@ export type AccessEvent = {
   reason: AccessReason;
   note: string;
   createdAt: string;
-  by: string;
+  byId: string;
 };

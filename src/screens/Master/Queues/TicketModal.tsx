@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { Button, Modal, TextAreaField } from '../../../components';
 import { customers } from '../../../mocks';
 import { assign, replyToTicket, setTicketStatus } from '../../../store/queues';
-import { useCompanies } from '../../../store/session';
+import { useAccountName, useCompanies } from '../../../store/session';
 import { showToast } from '../../../store/toasts';
 import { TICKET_TOPIC_LABEL, type Ticket } from '../../../types';
 import { ACCOUNT_PATH } from '../../../utils/accountSearch';
@@ -18,6 +18,7 @@ type Props = { ticket: Ticket; assignee?: string; me: string; onClose: () => voi
 
 export function TicketModal({ ticket, assignee, me, onClose }: Props) {
   const companies = useCompanies();
+  const nameOf = useAccountName();
   const [reply, setReply] = useState('');
   const [error, setError] = useState<string | null>(null);
   const requester =
@@ -82,7 +83,7 @@ export function TicketModal({ ticket, assignee, me, onClose }: Props) {
       <div className="flex flex-wrap items-center gap-sm text-caption text-ink-muted">
         {assignee ? (
           <span>
-            Responsável: <span className="font-semibold text-ink">{assignee === me ? 'você' : assignee}</span>
+            Responsável: <span className="font-semibold text-ink">{assignee === me ? 'você' : nameOf(assignee)}</span>
           </span>
         ) : (
           <>
@@ -107,7 +108,7 @@ export function TicketModal({ ticket, assignee, me, onClose }: Props) {
                 <p className={mine ? '' : 'sensitive'}>{message.text}</p>
               </div>
               <span className="text-caption text-ink-muted">
-                <span className={mine ? '' : 'sensitive'}>{message.author}</span> · {formatDateTime(message.createdAt)}
+                <span className={mine ? '' : 'sensitive'}>{mine ? nameOf(message.adminId ?? '') : (requester?.name ?? '')}</span> · {formatDateTime(message.createdAt)}
               </span>
             </li>
           );

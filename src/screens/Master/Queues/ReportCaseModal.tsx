@@ -4,6 +4,7 @@ import { Button, Modal, RatingValue, StatusBadge, TextAreaField } from '../../..
 import { customers } from '../../../mocks';
 import { setProductStatus } from '../../../store/catalog';
 import { assign, resolveCase } from '../../../store/queues';
+import { useAccountName } from '../../../store/session';
 import { showToast } from '../../../store/toasts';
 import { REPORT_REASON_LABEL, REPORT_TARGET_LABEL, type CaseDecision } from '../../../types';
 import { ACCOUNT_PATH } from '../../../utils/accountSearch';
@@ -33,13 +34,14 @@ type Props = {
 
 export function ReportCaseModal({ reportCase, me, onClose, onDecided }: Props) {
   const info = useTargetInfo()(reportCase.target);
+  const nameOf = useAccountName();
   const [note, setNote] = useState('');
   const { kind } = reportCase.target;
   const { resolution } = reportCase;
 
   const decide = (decision: CaseDecision) => {
     if (note.length > NOTE_MAX) return;
-    resolveCase({ target: reportCase.target, decision, note: note.trim(), by: me });
+    resolveCase({ target: reportCase.target, decision, note: note.trim(), byId: me });
     if (kind === 'item' && decision === 'removed') setProductStatus(reportCase.target.id, 'inactive');
     showToast('success', `${DECISION_DONE[kind][decision]}.`);
     onDecided(reportCase.key);
@@ -123,7 +125,7 @@ export function ReportCaseModal({ reportCase, me, onClose, onDecided }: Props) {
           <span className="font-semibold text-ink">{DECISION_DONE[kind][resolution.decision]}</span>
           {resolution.note ? <p className="text-ink">{resolution.note}</p> : null}
           <span className="text-caption text-ink-muted">
-            {resolution.by} · {formatDateTime(resolution.at)}
+            {nameOf(resolution.byId)} · {formatDateTime(resolution.at)}
           </span>
         </section>
       ) : (
@@ -136,7 +138,7 @@ export function ReportCaseModal({ reportCase, me, onClose, onDecided }: Props) {
           <div className="flex flex-wrap items-center gap-sm text-caption text-ink-muted">
             {reportCase.assignee ? (
               <span>
-                Responsável: <span className="font-semibold text-ink">{reportCase.assignee === me ? 'você' : reportCase.assignee}</span>
+                Responsável: <span className="font-semibold text-ink">{reportCase.assignee === me ? 'você' : nameOf(reportCase.assignee)}</span>
               </span>
             ) : (
               <>

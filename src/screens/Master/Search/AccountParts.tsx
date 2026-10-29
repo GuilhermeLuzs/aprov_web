@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router';
 import { ArrowLeft, Ban, RotateCcw } from 'lucide-react';
 import { Button, EmptyNotice } from '../../../components';
+import { useAccountName } from '../../../store/session';
 import { icon } from '../../../theme';
 import { ACCESS_ACTION_LABEL, ACCESS_REASON_LABEL, type AccessEvent } from '../../../types';
 import { SEARCH_PATH } from '../../../utils/accountSearch';
@@ -74,6 +75,7 @@ const ACTION_STYLE = {
 };
 
 export function AccessHistory({ events }: { events: AccessEvent[] }) {
+  const nameOf = useAccountName();
   return (
     <SectionCard title="Histórico de acesso" description="Toda suspensão e reativação fica registrada, com o motivo e quem fez.">
       {events.length === 0 ? (
@@ -93,7 +95,7 @@ export function AccessHistory({ events }: { events: AccessEvent[] }) {
                   </span>
                   <p className="text-ink">{event.note}</p>
                   <span className="text-caption text-ink-muted">
-                    {event.by} · {formatDateTime(event.createdAt)}
+                    {nameOf(event.byId)} · {formatDateTime(event.createdAt)}
                   </span>
                 </div>
               </li>

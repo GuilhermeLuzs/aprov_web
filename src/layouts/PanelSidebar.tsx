@@ -26,6 +26,8 @@ const ITEMS: Record<Role, NavItem[]> = {
 
 const PROFILE: NavItem = { label: 'Perfil', Icon: UserRound };
 
+const PROFILE_PATH: Partial<Record<Role, string>> = { master: '/master/perfil' };
+
 const ITEM = 'flex shrink-0 items-center gap-md rounded-control px-md py-sm font-semibold whitespace-nowrap';
 
 export const PANEL_DRAWER_ID = 'menu-do-painel';
@@ -86,7 +88,7 @@ function PanelNav({ role, onNavigate }: { role: Role; onNavigate: () => void }) 
         ))}
       </div>
       <div className="flex flex-col gap-xs border-t border-border pt-md">
-        <Item {...PROFILE} onNavigate={onNavigate} />
+        <Item {...PROFILE} to={PROFILE_PATH[role]} onNavigate={onNavigate} />
         <button type="button" onClick={leave} className={`${ITEM} text-ink-muted hover:bg-surface-alt hover:text-ink`}>
           <LogOut size={icon.size.md} strokeWidth={icon.strokeWidth} aria-hidden />
           Sair

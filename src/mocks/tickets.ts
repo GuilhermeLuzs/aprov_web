@@ -1,11 +1,10 @@
 import type { AccountRef, Customer, Ticket, TicketMessage } from '../types';
 import { accessEvents } from './accessEvents';
 import { testMasterAccount } from './accounts';
-import { companies } from './companies';
 import { customers } from './platform';
 import { assignments as reportAssignments, nextActiveCustomer } from './reports';
 
-const admin = testMasterAccount.name;
+const adminId = testMasterAccount.id;
 
 function customerRef(customer: Customer): AccountRef {
   return { kind: 'customer', id: customer.id };
@@ -15,18 +14,13 @@ function companyRef(id: string): AccountRef {
   return { kind: 'company', id };
 }
 
-function nameOf(ref: AccountRef): string {
-  const list = ref.kind === 'customer' ? customers : companies;
-  return list.find((account) => account.id === ref.id)?.name ?? '';
-}
-
 let messageCount = 0;
 
-function thread(requester: AccountRef, entries: [from: 'requester' | 'admin', createdAt: string, text: string][]): TicketMessage[] {
+function thread(entries: [from: 'requester' | 'admin', createdAt: string, text: string][]): TicketMessage[] {
   return entries.map(([from, createdAt, text]) => ({
     id: `tm${++messageCount}`,
     from,
-    author: from === 'admin' ? admin : nameOf(requester),
+    ...(from === 'admin' ? { adminId } : {}),
     text,
     createdAt,
   }));
@@ -38,9 +32,9 @@ function ticket(
   subject: string,
   topic: Ticket['topic'],
   status: Ticket['status'],
-  messages: Parameters<typeof thread>[1],
+  messages: Parameters<typeof thread>[0],
 ): Ticket {
-  return { id, requester, subject, topic, status, createdAt: messages[0][1], messages: thread(requester, messages) };
+  return { id, requester, subject, topic, status, createdAt: messages[0][1], messages: thread(messages) };
 }
 
 const harasserId = accessEvents.find((e) => e.reason === 'harassment')?.account.id ?? '';
@@ -84,6 +78,6 @@ export const tickets: Ticket[] = [
 
 export const assignments = [
   ...reportAssignments,
-  { queue: 'ticket' as const, key: 'tk2', to: admin },
-  { queue: 'ticket' as const, key: 'tk7', to: admin },
+  { queue: 'ticket' as const, key: 'tk2', toId: adminId },
+  { queue: 'ticket' as const, key: 'tk7', toId: adminId },
 ];
