@@ -31,6 +31,14 @@ export function formatRelativeDay(day: string, today: string): string {
   return formatLongDay(day);
 }
 
+export function formatAge(since: string, now: string): string {
+  const hours = Math.floor((Date.parse(now) - Date.parse(since)) / (DAY_MS / 24));
+  if (hours < 1) return 'agora há pouco';
+  if (hours < 24) return `há ${hours} h`;
+  const days = Math.floor(hours / 24);
+  return days === 1 ? 'há 1 dia' : `há ${days} dias`;
+}
+
 export function formatDateTime(timestamp: string): string {
   return `${formatLongDay(timestamp.slice(0, 10))}, ${timestamp.slice(11, 16)}`;
 }
