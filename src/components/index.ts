@@ -45,3 +45,4 @@ export { COIN_ICON, CoinBadge } from './CoinBadge';
 export { ColorPicker } from './ColorPicker';
 export { IconPicker } from './IconPicker';
 export { Tabs } from './Tabs';
+export { AccountStatusBadge } from './AccountStatusBadge';

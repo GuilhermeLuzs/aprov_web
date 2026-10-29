@@ -6,7 +6,6 @@ import {
   CompanySignUpScreen,
   LandingScreen,
   LoginScreen,
-  MasterHomeScreen,
   PasswordRecoveryScreen,
 } from '../screens';
 import { RequireRole } from './RequireRole';
@@ -17,6 +16,11 @@ const CatalogScreen = lazy(() => import('../screens/Company/Catalog/CatalogScree
 const ItemFormScreen = lazy(() => import('../screens/Company/Catalog/ItemFormScreen'));
 const CoinsScreen = lazy(() => import('../screens/Company/Coins/CoinsScreen'));
 const CouponsScreen = lazy(() => import('../screens/Company/Coupons/CouponsScreen'));
+const MasterOverviewScreen = lazy(() => import('../screens/Master/Overview/MasterOverviewScreen'));
+const AccountSearchScreen = lazy(() => import('../screens/Master/Search/AccountSearchScreen'));
+const CustomerAccountScreen = lazy(() => import('../screens/Master/Search/CustomerAccountScreen'));
+const CompanyAccountScreen = lazy(() => import('../screens/Master/Search/CompanyAccountScreen'));
+const QueuesScreen = lazy(() => import('../screens/Master/Queues/QueuesScreen'));
 
 export function AppRoutes() {
   return (
@@ -98,7 +102,49 @@ export function AppRoutes() {
             path="master"
             element={
               <RequireRole role="master">
-                <MasterHomeScreen />
+                <Suspense fallback={null}>
+                  <MasterOverviewScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="master/busca"
+            element={
+              <RequireRole role="master">
+                <Suspense fallback={null}>
+                  <AccountSearchScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="master/busca/clientes/:id"
+            element={
+              <RequireRole role="master">
+                <Suspense fallback={null}>
+                  <CustomerAccountScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="master/busca/empresas/:id"
+            element={
+              <RequireRole role="master">
+                <Suspense fallback={null}>
+                  <CompanyAccountScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="master/filas"
+            element={
+              <RequireRole role="master">
+                <Suspense fallback={null}>
+                  <QueuesScreen />
+                </Suspense>
               </RequireRole>
             }
           />

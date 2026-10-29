@@ -154,7 +154,7 @@
 
 @layer utilities {
   [data-private] .sensitive,
-  [data-private] .recharts-yAxis .recharts-cartesian-axis-tick-value {
+  [data-private] .recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value {
     filter: blur(var(--blur-sensitive));
     user-select: none;
   }

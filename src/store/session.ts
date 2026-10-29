@@ -79,6 +79,10 @@ export function useCurrentAccount(): Account | null {
   return useSyncExternalStore(subscribe, () => state.current);
 }
 
+export function useCompanies(): Company[] {
+  return useSyncExternalStore(subscribe, () => state.companies);
+}
+
 function currentCompany(): Company | null {
   const companyId = state.current?.companyId;
   return companyId ? (state.companies.find((c) => c.id === companyId) ?? null) : null;
