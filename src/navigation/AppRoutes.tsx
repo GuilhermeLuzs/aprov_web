@@ -20,6 +20,7 @@ const MasterOverviewScreen = lazy(() => import('../screens/Master/Overview/Maste
 const AccountSearchScreen = lazy(() => import('../screens/Master/Search/AccountSearchScreen'));
 const CustomerAccountScreen = lazy(() => import('../screens/Master/Search/CustomerAccountScreen'));
 const CompanyAccountScreen = lazy(() => import('../screens/Master/Search/CompanyAccountScreen'));
+const QueuesScreen = lazy(() => import('../screens/Master/Queues/QueuesScreen'));
 
 export function AppRoutes() {
   return (
@@ -133,6 +134,16 @@ export function AppRoutes() {
               <RequireRole role="master">
                 <Suspense fallback={null}>
                   <CompanyAccountScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="master/filas"
+            element={
+              <RequireRole role="master">
+                <Suspense fallback={null}>
+                  <QueuesScreen />
                 </Suspense>
               </RequireRole>
             }

@@ -1,6 +1,7 @@
 import { partnerProducts } from './partnerProducts';
 import { partnerReviews } from './platform';
 import { products as companyProducts } from './products';
+import { reportedReviews } from './reports';
 import { reviews as companyReviews } from './reviews';
 
 export { accessEvents } from './accessEvents';
@@ -12,7 +13,9 @@ export { couponOffers } from './coupons';
 export { couponTemplate, integrationSettings } from './integrations';
 export { customers } from './platform';
 export { redemptions } from './redemptions';
+export { caseResolutions, reports } from './reports';
 export { tagById, tags } from './tags';
+export { assignments, tickets } from './tickets';
 
 export const products = [...companyProducts, ...partnerProducts];
-export const reviews = [...companyReviews, ...partnerReviews];
+export const reviews = [...companyReviews, ...partnerReviews, ...reportedReviews];

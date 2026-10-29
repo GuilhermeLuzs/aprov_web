@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { Coins, Inbox, LayoutDashboard, LogOut, Package, Ticket, Search, UserRound, X, type LucideIcon } from 'lucide-react';
 import { BrandMark } from '../components';
+import { useQueues } from '../store/queues';
 import { signOut } from '../store/session';
 import { breakpoints, icon } from '../theme';
 import type { Role } from '../types';
+import { buildCases } from '../utils/queues';
 
-type NavItem = { label: string; Icon: LucideIcon; to?: string; exact?: boolean };
+type NavItem = { label: string; Icon: LucideIcon; to?: string; exact?: boolean; count?: number };
 
 const ITEMS: Record<Role, NavItem[]> = {
   empresa: [
@@ -18,7 +20,7 @@ const ITEMS: Record<Role, NavItem[]> = {
   master: [
     { label: 'Visão geral', Icon: LayoutDashboard, to: '/master', exact: true },
     { label: 'Busca avançada', Icon: Search, to: '/master/busca' },
-    { label: 'Filas', Icon: Inbox },
+    { label: 'Filas', Icon: Inbox, to: '/master/filas' },
   ],
 };
 
@@ -28,7 +30,7 @@ const ITEM = 'flex shrink-0 items-center gap-md rounded-control px-md py-sm font
 
 export const PANEL_DRAWER_ID = 'menu-do-painel';
 
-function Item({ label, Icon, to, exact = false, onNavigate }: NavItem & { onNavigate: () => void }) {
+function Item({ label, Icon, to, exact = false, count, onNavigate }: NavItem & { onNavigate: () => void }) {
   if (!to) {
     return (
       <span className={`${ITEM} cursor-not-allowed text-ink-faint`} aria-disabled>
@@ -49,12 +51,26 @@ function Item({ label, Icon, to, exact = false, onNavigate }: NavItem & { onNavi
     >
       <Icon size={icon.size.md} strokeWidth={icon.strokeWidth} aria-hidden />
       {label}
+      {count ? (
+        <span
+          className="ml-auto rounded-pill bg-primary px-sm font-semibold text-caption text-surface tabular-nums"
+          aria-label={`${count} aguardando`}
+        >
+          {count}
+        </span>
+      ) : null}
     </NavLink>
   );
 }
 
 function PanelNav({ role, onNavigate }: { role: Role; onNavigate: () => void }) {
   const navigate = useNavigate();
+  const { reports, resolutions, assignments, tickets } = useQueues();
+  const waiting =
+    role === 'master'
+      ? buildCases(reports, resolutions, assignments).filter((c) => c.pending).length +
+        tickets.filter((t) => t.status === 'open').length
+      : 0;
 
   const leave = () => {
     onNavigate();
@@ -66,7 +82,7 @@ function PanelNav({ role, onNavigate }: { role: Role; onNavigate: () => void }) 
     <nav aria-label="Menu do painel" className="flex flex-1 flex-col justify-between gap-lg">
       <div className="flex flex-col gap-xs">
         {ITEMS[role].map((item) => (
-          <Item key={item.label} {...item} onNavigate={onNavigate} />
+          <Item key={item.label} {...item} count={item.to === '/master/filas' ? waiting : undefined} onNavigate={onNavigate} />
         ))}
       </div>
       <div className="flex flex-col gap-xs border-t border-border pt-md">

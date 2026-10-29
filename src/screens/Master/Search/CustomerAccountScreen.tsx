@@ -5,6 +5,7 @@ import { AccountStatusBadge, CompanyAvatar, RatingValue, StatTile } from '../../
 import { customers, mockToday, reviews } from '../../../mocks';
 import { useProducts } from '../../../store/catalog';
 import { markViewed, useAccessEvents } from '../../../store/moderation';
+import { useQueues } from '../../../store/queues';
 import { useCompanies } from '../../../store/session';
 import { icon } from '../../../theme';
 import type { AccountRef } from '../../../types';
@@ -49,6 +50,11 @@ export default function CustomerAccountScreen() {
   const allEvents = useAccessEvents();
   const products = useProducts();
   const companies = useCompanies();
+  const removedIds = new Set(
+    useQueues()
+      .resolutions.filter((r) => r.target.kind === 'review' && r.decision === 'removed')
+      .map((r) => r.target.id),
+  );
 
   useEffect(() => {
     if (customer) markViewed({ kind: 'customer', id: customer.id });
@@ -135,7 +141,12 @@ export default function CustomerAccountScreen() {
                         <span className="sensitive text-caption text-ink-muted">
                           {product?.title ?? 'Item removido'} · {company?.name ?? 'Empresa removida'}
                         </span>
-                        <span className="text-caption text-ink-muted">{formatRelativeDay(review.createdAt.slice(0, 10), mockToday)}</span>
+                        <span className="flex flex-wrap items-center gap-sm text-caption text-ink-muted">
+                          {formatRelativeDay(review.createdAt.slice(0, 10), mockToday)}
+                          {removedIds.has(review.id) ? (
+                            <span className="rounded-pill bg-disagree-dim px-sm font-semibold text-disagree">Removida por denúncia</span>
+                          ) : null}
+                        </span>
                       </div>
                       <RatingValue average={reviewAverage(review)} />
                     </li>

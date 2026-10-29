@@ -25,6 +25,20 @@ export {
 } from './catalog';
 export type { Category, Company, CompanyResponsible, CompanySize, Modality } from './company';
 export type { Customer } from './customer';
+export type {
+  Assignment,
+  CaseDecision,
+  CaseResolution,
+  Report,
+  ReportReason,
+  ReportTarget,
+  ReportTargetKind,
+  Ticket,
+  TicketMessage,
+  TicketStatus,
+  TicketTopic,
+} from './queues';
+export { REPORT_REASON_LABEL, REPORT_TARGET_LABEL, TICKET_STATUS_LABEL, TICKET_TOPIC_LABEL } from './queues';
 export type { AccessAction, AccessEvent, AccessReason, AccountKind, AccountRef, AccountStatus } from './moderation';
 export {
   ACCESS_ACTION_LABEL,
