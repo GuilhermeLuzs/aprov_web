@@ -16,14 +16,17 @@ type Props = {
   custom: DayRange;
   onCustomChange: (range: DayRange) => void;
   error?: string;
+  align?: 'start' | 'end';
 };
+
+const ALIGN = { start: 'items-start', end: 'md:items-end' };
 
 const DATE_INPUT =
   'h-control rounded-control border border-border bg-surface px-md text-ink outline-none focus:border-primary';
 
-export function PeriodFilter({ period, onPeriodChange, custom, onCustomChange, error }: Props) {
+export function PeriodFilter({ period, onPeriodChange, custom, onCustomChange, error, align = 'end' }: Props) {
   return (
-    <div className="flex flex-col gap-sm md:items-end">
+    <div className={`flex flex-col gap-sm ${ALIGN[align]}`}>
       <div className="relative flex h-control items-center rounded-control border border-border bg-surface transition-colors focus-within:border-primary">
         <CalendarDays
           size={icon.size.md}

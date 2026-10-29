@@ -24,6 +24,15 @@ export {
   SERVICE_MODALITY_LABEL,
 } from './catalog';
 export type { Category, Company, CompanyResponsible, CompanySize, Modality } from './company';
+export type { Customer } from './customer';
+export type { AccessAction, AccessEvent, AccessReason, AccountKind, AccountRef, AccountStatus } from './moderation';
+export {
+  ACCESS_ACTION_LABEL,
+  ACCESS_REASON_LABEL,
+  ACCOUNT_STATUS_LABEL,
+  REACTIVATE_REASONS,
+  SUSPEND_REASONS,
+} from './moderation';
 export { CATEGORY_LABEL, COMPANY_SIZE_LABEL, MODALITY_LABEL } from './company';
 export type { Characteristic, Review, Sentiment, Tag } from './review';
 export { CHARACTERISTICS, CHARACTERISTIC_LABEL } from './review';

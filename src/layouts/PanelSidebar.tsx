@@ -17,7 +17,7 @@ const ITEMS: Record<Role, NavItem[]> = {
   ],
   master: [
     { label: 'Visão geral', Icon: LayoutDashboard, to: '/master', exact: true },
-    { label: 'Busca avançada', Icon: Search },
+    { label: 'Busca avançada', Icon: Search, to: '/master/busca' },
     { label: 'Filas', Icon: Inbox },
   ],
 };

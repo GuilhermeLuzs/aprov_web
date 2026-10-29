@@ -14,7 +14,7 @@ function fromDay(day: string): Date {
   return new Date(`${day}T00:00:00.000Z`);
 }
 
-function shiftDay(day: string, days: number): string {
+export function shiftDay(day: string, days: number): string {
   return toDay(new Date(fromDay(day).getTime() + days * DAY_MS));
 }
 

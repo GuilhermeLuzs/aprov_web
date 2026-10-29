@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ChartCard, type LegendItem } from './ChartCard';
 import { ChartTooltip } from './ChartTooltip';
@@ -20,9 +20,10 @@ type Props = {
   data: DayAverages[];
   title: string;
   description: string;
+  actions?: ReactNode;
 };
 
-export function RatingTrendChart({ data, title, description }: Props) {
+export function RatingTrendChart({ data, title, description, actions }: Props) {
   const [hiddenKeys, setHiddenKeys] = useState<string[]>([]);
 
   const toggleKey = (key: string) =>
@@ -35,6 +36,7 @@ export function RatingTrendChart({ data, title, description }: Props) {
       legend={LEGEND}
       hiddenKeys={hiddenKeys}
       onToggleKey={toggleKey}
+      actions={actions}
     >
       <ResponsiveContainer width="100%" height={chart.height}>
         <LineChart data={data} margin={chart.margin}>

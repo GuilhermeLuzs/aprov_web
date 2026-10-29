@@ -1,0 +1,63 @@
+import type { Category, Product, ProductKind, ProductStatus, ServiceModality } from '../types';
+
+type Entry = [
+  id: string,
+  companyId: string,
+  kind: ProductKind,
+  categories: Category[],
+  title: string,
+  description: string,
+  status?: ProductStatus,
+  modality?: ServiceModality,
+];
+
+const ENTRIES: Entry[] = [
+  ['p101', 'c3', 'product', ['eletronicos'], 'Fone de ouvido Bluetooth Voltz Pulse', 'Fone sem fio com cancelamento de ruído e 30 horas de bateria.'],
+  ['p102', 'c3', 'product', ['eletronicos'], 'Carregador turbo USB-C 30W', 'Carregador compacto com proteção contra superaquecimento.'],
+  ['p103', 'c3', 'product', ['eletronicos', 'saude'], 'Smartwatch Voltz Fit 2', 'Relógio com monitor cardíaco, oxímetro e GPS.'],
+  ['p104', 'c3', 'product', ['eletronicos'], 'Caixa de som portátil Voltz Boom', 'Caixa à prova d’água com 12 horas de música.', 'inactive'],
+  ['p105', 'c3', 'service', ['eletronicos', 'casa'], 'Instalação de home theater', 'Instalação e configuração de som e TV na sua sala.', 'active', 'domicilio'],
+  ['p106', 'c4', 'product', ['moda'], 'Camisa de linho masculina', 'Camisa de linho puro, corte reto, em seis cores.'],
+  ['p107', 'c4', 'product', ['moda'], 'Vestido midi de algodão', 'Vestido leve de algodão orgânico com bolsos.'],
+  ['p108', 'c4', 'service', ['moda'], 'Ajuste e barra sob medida', 'Ajustes de costura em peças compradas no ateliê ou fora dele.', 'active', 'presencial'],
+  ['p109', 'c5', 'product', ['beleza', 'saude'], 'Sérum facial de vitamina C 30ml', 'Sérum antioxidante para uso diário, sem fragrância.'],
+  ['p110', 'c5', 'product', ['beleza'], 'Sabonete artesanal de argila', 'Sabonete de argila verde para pele oleosa.'],
+  ['p111', 'c5', 'product', ['beleza'], 'Hidratante corporal de karité', 'Creme de absorção rápida com manteiga de karité.'],
+  ['p112', 'c5', 'product', ['beleza'], 'Kit de skincare para iniciantes', 'Limpeza, tônico e hidratante em tamanho de viagem.', 'inactive'],
+  ['p113', 'c6', 'product', ['casa'], 'Jogo de panelas antiaderentes 5 peças', 'Panelas com revestimento cerâmico, próprias para indução.'],
+  ['p114', 'c6', 'product', ['casa'], 'Organizador de gavetas modular', 'Divisórias encaixáveis para cozinha e escritório.'],
+  ['p115', 'c6', 'product', ['casa'], 'Toalha de banho 100% algodão', 'Toalha felpuda de 500 g/m², em oito cores.'],
+  ['p116', 'c6', 'service', ['casa', 'servicos_domesticos'], 'Montagem de móveis', 'Montagem de móveis comprados na loja, com hora marcada.', 'active', 'domicilio'],
+  ['p117', 'c7', 'service', ['servicos_domesticos'], 'Faxina residencial completa', 'Limpeza de todos os cômodos com material incluso.', 'active', 'domicilio'],
+  ['p118', 'c7', 'service', ['servicos_domesticos'], 'Passadoria semanal', 'Coleta, passadoria e entrega das roupas uma vez por semana.', 'active', 'domicilio'],
+  ['p119', 'c7', 'service', ['servicos_domesticos', 'casa'], 'Limpeza pós-obra', 'Remoção de poeira fina, respingos de tinta e entulho leve.', 'active', 'domicilio'],
+  ['p120', 'c7', 'service', ['servicos_domesticos'], 'Higienização de sofá', 'Lavagem a seco e impermeabilização de estofados.', 'active', 'domicilio'],
+  ['p121', 'c8', 'service', ['educacao'], 'Curso de inglês para iniciantes', 'Turmas de até oito alunos, duas aulas por semana.', 'active', 'presencial'],
+  ['p122', 'c8', 'service', ['educacao'], 'Aulas particulares de espanhol', 'Aulas individuais com foco em conversação.', 'active', 'remoto'],
+  ['p123', 'c8', 'service', ['educacao'], 'Preparatório para intercâmbio', 'Preparação para provas de proficiência e entrevistas.', 'inactive', 'remoto'],
+  ['p124', 'c8', 'product', ['educacao'], 'Apostila de conversação em inglês', 'Apostila com áudios para praticar em casa.'],
+  ['p125', 'c9', 'service', ['saude'], 'Sessão de fisioterapia ortopédica', 'Sessão de 50 minutos com fisioterapeuta especialista.', 'active', 'presencial'],
+  ['p126', 'c9', 'service', ['saude'], 'Pilates clínico', 'Aulas de pilates em aparelhos com acompanhamento individual.', 'active', 'presencial'],
+  ['p127', 'c9', 'service', ['saude'], 'Avaliação postural', 'Avaliação completa com relatório e plano de exercícios.', 'active', 'presencial'],
+  ['p128', 'c9', 'service', ['saude', 'beleza'], 'Drenagem linfática', 'Sessão de drenagem manual de 60 minutos.', 'active', 'presencial'],
+  ['p129', 'c10', 'product', ['alimentacao'], 'Café especial em grãos 250g', 'Café de altitude com notas de chocolate e caramelo.'],
+  ['p130', 'c10', 'product', ['alimentacao'], 'Café moído torra média 500g', 'Moagem média, ideal para coador e cafeteira elétrica.'],
+  ['p131', 'c10', 'product', ['alimentacao'], 'Kit degustação de cafés', 'Quatro cafés de fazendas diferentes, 100 g cada.'],
+  ['p132', 'c10', 'service', ['alimentacao', 'educacao'], 'Curso de barista em casa', 'Curso on-line de métodos de preparo, com kit enviado.', 'active', 'remoto'],
+];
+
+export const partnerProducts: Product[] = ENTRIES.map(
+  ([id, companyId, kind, categories, title, description, status = 'active', modality]) => ({
+    id,
+    companyId,
+    kind,
+    categories,
+    title,
+    description,
+    imageUrl: '',
+    status,
+    coinsReward: kind === 'product' ? 20 : 30,
+    xpReward: 20,
+    ...(kind === 'service' ? { service: { durationMinutes: 60, recurrence: 'unica', modality: modality ?? 'presencial' } } : {}),
+  }),
+);

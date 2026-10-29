@@ -1,10 +1,18 @@
+import { partnerProducts } from './partnerProducts';
+import { partnerReviews } from './platform';
+import { products as companyProducts } from './products';
+import { reviews as companyReviews } from './reviews';
+
+export { accessEvents } from './accessEvents';
 export { accounts, testCompanyAccount, testMasterAccount } from './accounts';
-export { mockToday } from './clock';
+export { mockNow, mockToday } from './clock';
 export { coinSettings, defaultCoinSettings } from './coins';
 export { companies } from './companies';
 export { couponOffers } from './coupons';
 export { couponTemplate, integrationSettings } from './integrations';
-export { products } from './products';
+export { customers } from './platform';
 export { redemptions } from './redemptions';
-export { reviews } from './reviews';
 export { tagById, tags } from './tags';
+
+export const products = [...companyProducts, ...partnerProducts];
+export const reviews = [...companyReviews, ...partnerReviews];
