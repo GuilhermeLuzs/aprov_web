@@ -79,6 +79,30 @@ export function useCurrentAccount(): Account | null {
   return useSyncExternalStore(subscribe, () => state.current);
 }
 
+export type ProfileResult = { ok: true } | { ok: false; reason: 'email' };
+
+export function updateProfile(accountId: string, profile: { name: string; email: string }): ProfileResult {
+  const email = profile.email.trim();
+  if (state.accounts.some((a) => a.id !== accountId && sameEmail(a.email, email))) return { ok: false, reason: 'email' };
+  const accounts = state.accounts.map((a) => (a.id === accountId ? { ...a, name: profile.name.trim(), email } : a));
+  state = { ...state, accounts, current: accounts.find((a) => a.id === state.current?.id) ?? state.current };
+  emit();
+  return { ok: true };
+}
+
+export function changePassword(accountId: string, current: string, next: string): boolean {
+  if (!state.accounts.some((a) => a.id === accountId && a.password === current)) return false;
+  const accounts = state.accounts.map((a) => (a.id === accountId ? { ...a, password: next } : a));
+  state = { ...state, accounts, current: accounts.find((a) => a.id === state.current?.id) ?? state.current };
+  emit();
+  return true;
+}
+
+export function useAccountName(): (accountId: string) => string {
+  const accounts = useSyncExternalStore(subscribe, () => state.accounts);
+  return (accountId) => accounts.find((a) => a.id === accountId)?.name ?? 'Conta removida';
+}
+
 export function useCompanies(): Company[] {
   return useSyncExternalStore(subscribe, () => state.companies);
 }

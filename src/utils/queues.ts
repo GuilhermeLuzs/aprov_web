@@ -27,7 +27,7 @@ export function targetKey(target: ReportTarget): string {
 }
 
 function assigneeOf(assignments: Assignment[], queue: Assignment['queue'], key: string): string | undefined {
-  return assignments.find((a) => a.queue === queue && a.key === key)?.to;
+  return assignments.find((a) => a.queue === queue && a.key === key)?.toId;
 }
 
 export type ReasonCount = { reason: ReportReason; count: number };

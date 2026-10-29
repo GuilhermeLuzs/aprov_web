@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { EmptyNotice, FilterSelect, Tabs } from '../../../components';
 import { useQueues } from '../../../store/queues';
+import { useAccountName } from '../../../store/session';
 import { REPORT_REASON_LABEL, REPORT_TARGET_LABEL, type ReportReason, type ReportTargetKind } from '../../../types';
 import {
   DEFAULT_CASE_FILTERS,
@@ -31,6 +32,7 @@ const SORT_OPTIONS = [{ value: 'mostReported', label: 'Mais denunciadas primeiro
 
 function CaseRow({ reportCase, me, onOpen }: { reportCase: ReportCase; me: string; onOpen: () => void }) {
   const info = useTargetInfo()(reportCase.target);
+  const nameOf = useAccountName();
   const resolved = reportCase.resolution && !reportCase.pending;
   return (
     <li>
@@ -55,12 +57,12 @@ function CaseRow({ reportCase, me, onOpen }: { reportCase: ReportCase; me: strin
           <div className="flex flex-wrap items-center gap-md">
             {resolved ? (
               <span className="text-caption text-ink-muted">
-                {reportCase.resolution?.decision === 'removed' ? 'Removido' : 'Mantido'} por {reportCase.resolution?.by}
+                {reportCase.resolution?.decision === 'removed' ? 'Removido' : 'Mantido'} por {nameOf(reportCase.resolution?.byId ?? '')}
               </span>
             ) : (
               <>
                 <span className="text-caption text-ink-muted">
-                  {reportCase.assignee ? `Com ${reportCase.assignee === me ? 'você' : reportCase.assignee}` : 'Sem responsável'}
+                  {reportCase.assignee ? `Com ${reportCase.assignee === me ? 'você' : nameOf(reportCase.assignee)}` : 'Sem responsável'}
                 </span>
                 <AgeLabel since={reportCase.openedAt} />
               </>

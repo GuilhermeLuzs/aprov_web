@@ -37,9 +37,9 @@ export function resolveCase(resolution: Omit<CaseResolution, 'at'>) {
   emit();
 }
 
-export function assign(queue: Assignment['queue'], key: string, to: string) {
+export function assign(queue: Assignment['queue'], key: string, toId: string) {
   const others = state.assignments.filter((a) => a.queue !== queue || a.key !== key);
-  state = { ...state, assignments: [...others, { queue, key, to }] };
+  state = { ...state, assignments: [...others, { queue, key, toId }] };
   emit();
 }
 
@@ -48,11 +48,11 @@ function updateTicket(id: string, change: (ticket: Ticket) => Ticket) {
   emit();
 }
 
-export function replyToTicket(id: string, author: string, text: string, status: TicketStatus) {
+export function replyToTicket(id: string, adminId: string, text: string, status: TicketStatus) {
   updateTicket(id, (t) => ({
     ...t,
     status,
-    messages: [...t.messages, { id: `tm${Date.now()}`, from: 'admin', author, text, createdAt: mockNow() }],
+    messages: [...t.messages, { id: `tm${Date.now()}`, from: 'admin', adminId, text, createdAt: mockNow() }],
   }));
 }
 

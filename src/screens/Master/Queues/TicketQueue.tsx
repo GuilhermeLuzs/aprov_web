@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { EmptyNotice, FilterSelect, Tabs } from '../../../components';
 import { customers } from '../../../mocks';
 import { useQueues } from '../../../store/queues';
-import { useCompanies } from '../../../store/session';
+import { useAccountName, useCompanies } from '../../../store/session';
 import { TICKET_STATUS_LABEL, TICKET_TOPIC_LABEL, type AccountKind, type TicketStatus, type TicketTopic } from '../../../types';
 import {
   DEFAULT_TICKET_FILTERS,
@@ -43,7 +43,8 @@ export function TicketQueue({ me }: { me: string }) {
   const countOf = (status: TicketStatus) => tickets.filter((t) => t.status === status).length;
   const update = (change: Partial<TicketFilters>) => setFilters((current) => ({ ...current, ...change }));
 
-  const nameOf = (kind: AccountKind, id: string) =>
+  const nameOf = useAccountName();
+  const requesterName = (kind: AccountKind, id: string) =>
     (kind === 'customer' ? customers.find((c) => c.id === id) : companies.find((c) => c.id === id))?.name ?? 'Conta removida';
 
   return (
@@ -112,7 +113,7 @@ export function TicketQueue({ me }: { me: string }) {
                     </span>
                     <span className="text-caption text-ink-muted">
                       {ticket.requester.kind === 'customer' ? 'Cliente' : 'Empresa'} ·{' '}
-                      <span className="sensitive">{nameOf(ticket.requester.kind, ticket.requester.id)}</span>
+                      <span className="sensitive">{requesterName(ticket.requester.kind, ticket.requester.id)}</span>
                     </span>
                   </div>
                   <span className="font-semibold text-ink">{ticket.subject}</span>
@@ -124,7 +125,7 @@ export function TicketQueue({ me }: { me: string }) {
                   ) : null}
                   <div className="flex flex-wrap items-center justify-end gap-md">
                     <span className="text-caption text-ink-muted">
-                      {assignee ? `Com ${assignee === me ? 'você' : assignee}` : 'Sem responsável'}
+                      {assignee ? `Com ${assignee === me ? 'você' : nameOf(assignee)}` : 'Sem responsável'}
                     </span>
                     {ticket.status === 'open' ? (
                       <AgeLabel since={waitingSince(ticket)} />

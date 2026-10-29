@@ -9,7 +9,7 @@ import { TicketQueue } from './TicketQueue';
 type Queue = 'denuncias' | 'suporte';
 
 export default function QueuesScreen() {
-  const me = useCurrentAccount()?.name ?? '';
+  const me = useCurrentAccount()?.id ?? '';
   const { reports, resolutions, assignments, tickets } = useQueues();
   const [params, setParams] = useSearchParams();
   const queue: Queue = params.get('fila') === 'suporte' ? 'suporte' : 'denuncias';

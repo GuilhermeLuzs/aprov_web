@@ -5,7 +5,7 @@ import { partnerProducts } from './partnerProducts';
 import { customers } from './platform';
 
 const HOUR_MS = 60 * 60 * 1000;
-const by = testMasterAccount.name;
+const byId = testMasterAccount.id;
 
 function shiftHours(timestamp: string, hours: number): string {
   return new Date(Date.parse(timestamp) + hours * HOUR_MS).toISOString();
@@ -186,23 +186,23 @@ export const caseResolutions: CaseResolution[] = [
     target: reviewTarget('rf1'),
     decision: 'removed',
     note: 'Mesmo texto publicado em vários itens. Autora suspensa por avaliação copiada.',
-    by,
+    byId,
     at: copier.lastActiveAt,
   },
   {
     target: reviewTarget('rf8'),
     decision: 'kept',
     note: 'Crítica dura, mas fala do serviço. Não ofende ninguém.',
-    by,
+    byId,
     at: '2026-10-13T09:30:00.000Z',
   },
   {
     target: itemTarget('p113'),
     decision: 'kept',
     note: 'A empresa corrigiu as fotos e a descrição. O acesso dela foi reativado.',
-    by,
+    byId,
     at: '2026-09-18T15:50:00.000Z',
   },
 ];
 
-export const assignments: Assignment[] = [{ queue: 'report', key: 'review:rf4', to: by }];
+export const assignments: Assignment[] = [{ queue: 'report', key: 'review:rf4', toId: byId }];

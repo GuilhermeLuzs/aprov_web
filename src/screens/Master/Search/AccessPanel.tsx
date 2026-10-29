@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Button, Modal, SelectField, Switch, TextAreaField } from '../../../components';
 import { recordAccessChange } from '../../../store/moderation';
-import { useCurrentAccount } from '../../../store/session';
+import { useAccountName, useCurrentAccount } from '../../../store/session';
 import { showToast } from '../../../store/toasts';
 import {
   ACCESS_REASON_LABEL,
@@ -43,7 +43,7 @@ function AccessModal({ account, name, suspending, onClose }: ModalProps) {
       action: suspending ? 'suspend' : 'reactivate',
       reason: reason as AccessReason,
       note: note.trim(),
-      by: admin?.name ?? '',
+      byId: admin?.id ?? '',
     });
     showToast('success', suspending ? `Acesso de ${name} suspenso.` : `Acesso de ${name} reativado.`);
     onClose();
@@ -98,6 +98,7 @@ type Props = { account: AccountRef; name: string; latest: AccessEvent | undefine
 export function AccessPanel({ account, name, latest }: Props) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
+  const nameOf = useAccountName();
   const suspended = latest?.action === 'suspend';
 
   return (
@@ -111,7 +112,7 @@ export function AccessPanel({ account, name, latest }: Props) {
       />
       {suspended && latest ? (
         <p className="rounded-control bg-disagree-dim p-md text-caption text-ink">
-          Suspenso em {formatDateTime(latest.createdAt)} por {latest.by}. Motivo:{' '}
+          Suspenso em {formatDateTime(latest.createdAt)} por {nameOf(latest.byId)}. Motivo:{' '}
           <span className="font-semibold">{ACCESS_REASON_LABEL[latest.reason]}</span>.
         </p>
       ) : (
