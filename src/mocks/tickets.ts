@@ -72,7 +72,7 @@ export const tickets: Ticket[] = [
   ]),
   ticket('tk9', customerRef(nextActiveCustomer('2026-10-18T13:25:00.000Z')), 'Qual a diferença entre pontos e XP?', 'other', 'resolved', [
     ['requester', '2026-10-18T13:25:00.000Z', 'Não entendi a diferença entre pontos APROV e XP.'],
-    ['admin', '2026-10-18T16:00:00.000Z', 'O XP sobe seu nível e não é gasto. Os pontos APROV você usa para comprar cosméticos na loja do app.'],
+    ['admin', '2026-10-18T16:00:00.000Z', 'O XP sobe seu nível e não é gasto. Os pontos APROV você usa para comprar acessórios na Loja do app.'],
   ]),
 ];
 
