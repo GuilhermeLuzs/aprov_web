@@ -6,15 +6,18 @@ import {
   Button,
   ChoiceGroup,
   CityPicker,
+  EmptyNotice,
+  LoadingNotice,
   MediaPicker,
   MultiSelectFilter,
   SelectField,
   TextAreaField,
   TextField,
 } from '../../../components';
+import { ApiError, apiUploadItemMedia } from '../../../api';
 import { loadMunicipalities } from '../../../mocks/municipalities';
-import { addProduct, findProduct, updateProduct } from '../../../store/catalog';
-import { useCurrentAccount } from '../../../store/session';
+import { useCatalogItem, useSaveItem } from '../../../queries/catalog';
+import { showToast } from '../../../store/toasts';
 import { icon } from '../../../theme';
 import {
   CATEGORY_LABEL,
@@ -23,26 +26,30 @@ import {
   RECURRENCE_LABEL,
   type Category,
   type DurationUnit,
+  type MediaKind,
   type ProductKind,
   type Recurrence,
   type ServiceModality,
 } from '../../../types';
+import { catalogItemFromApi } from '../../../utils/catalog';
 import {
   BRAND_MAX,
   DESCRIPTION_MAX,
   TITLE_MAX,
   emptyItemForm,
-  formFromProduct,
-  productFields,
+  formErrorsFromServer,
+  formFromItem,
+  itemPayload,
   validateItem,
+  type FormMedia,
   type ItemForm,
   type ItemFormErrors,
 } from '../../../utils/itemForm';
 import { formatCep } from '../../../utils/validation';
-import { showToast } from '../../../store/toasts';
+import { readVideoDetails } from '../../../utils/videoDetails';
 
 const CATALOG_PATH = '/empresa/catalogo';
-const DEFAULT_REWARD = 20;
+const NOT_FOUND = 404;
 
 const KIND_BY_SLUG: Record<string, ProductKind> = { produto: 'product', servico: 'service' };
 
@@ -87,59 +94,101 @@ function focusFirstError() {
   });
 }
 
-export default function ItemFormScreen() {
-  const { kind: kindSlug, id } = useParams();
-  const navigate = useNavigate();
-  const account = useCurrentAccount();
-  const editing = id ? findProduct(id) : undefined;
-  const newKind = kindSlug ? KIND_BY_SLUG[kindSlug] : undefined;
+function uploadErrorOf(error: unknown): string {
+  if (error instanceof ApiError) return error.errors.file?.[0] ?? error.message;
+  return 'Não deu para enviar. Tente de novo.';
+}
 
-  const [form, setForm] = useState<ItemForm>(() => (editing ? formFromProduct(editing) : emptyItemForm(newKind ?? 'product')));
-  const [errors, setErrors] = useState<ItemFormErrors>({});
+function ItemFormContent({ itemId, initial }: { itemId: number | null; initial: ItemForm }) {
+  const navigate = useNavigate();
+  const save = useSaveItem(itemId);
+  const [form, setForm] = useState<ItemForm>(initial);
+  const [serverErrors, setServerErrors] = useState<ItemFormErrors>({});
   const [submitted, setSubmitted] = useState(false);
 
-  if (id && (!editing || editing.companyId !== account?.companyId)) return <Navigate to={CATALOG_PATH} replace />;
-  if (!id && !newKind) return <Navigate to={CATALOG_PATH} replace />;
-
+  const editing = itemId !== null;
   const kindLabel = PRODUCT_KIND_LABEL[form.kind].toLowerCase();
   const isService = form.kind === 'service';
   const title = editing ? `Editar ${kindLabel}` : `Novo ${kindLabel}`;
+  const errors: ItemFormErrors = submitted ? { ...serverErrors, ...validateItem(form) } : serverErrors;
 
   const update = (change: Partial<ItemForm>) => {
-    const next = { ...form, ...change };
-    setForm(next);
-    if (submitted) setErrors(validateItem(next));
+    setForm((current) => ({ ...current, ...change }));
+    setServerErrors({});
+  };
+
+  const patchMedia = (key: string, change: Partial<FormMedia>) => {
+    setForm((current) => ({
+      ...current,
+      media: current.media.map((item) => (item.key === key ? { ...item, ...change } : item)),
+    }));
+  };
+
+  const upload = async (entry: FormMedia) => {
+    if (!entry.file) return;
+    patchMedia(entry.key, { progress: 0, error: null });
+    try {
+      const video = entry.kind === 'video' ? await readVideoDetails(entry.file) : null;
+      const sent = await apiUploadItemMedia(entry.file, video, (progress) => patchMedia(entry.key, { progress }));
+      patchMedia(entry.key, { serverId: sent.id, progress: 1, posterUrl: sent.coverUrl ?? undefined });
+    } catch (error) {
+      patchMedia(entry.key, {
+        error: error instanceof Error && error.message === 'video' ? 'Não deu para ler o vídeo.' : uploadErrorOf(error),
+      });
+    }
+  };
+
+  const addMedia = (files: { file: File; kind: MediaKind }[]) => {
+    const stamp = Date.now();
+    const entries: FormMedia[] = files.map(({ file, kind }, index) => ({
+      key: `nova-${stamp}-${index}`,
+      kind,
+      url: URL.createObjectURL(file),
+      name: file.name,
+      serverId: null,
+      progress: 0,
+      error: null,
+      file,
+    }));
+    setForm((current) => ({ ...current, media: [...current.media, ...entries] }));
+    setServerErrors({});
+    entries.forEach((entry) => void upload(entry));
+  };
+
+  const retryMedia = (key: string) => {
+    const entry = form.media.find((item) => item.key === key);
+    if (entry) void upload(entry);
   };
 
   const submit = (event: SubmitEvent) => {
     event.preventDefault();
     const found = validateItem(form);
     setSubmitted(true);
-    setErrors(found);
+    setServerErrors({});
     if (Object.keys(found).length > 0) {
       showToast('error', 'Não deu para salvar. Confira os campos marcados.');
       focusFirstError();
       return;
     }
-    if (editing) {
-      updateProduct({ ...editing, ...productFields(form) });
-      showToast('success', `Alterações em "${form.title.trim()}" salvas.`);
-      navigate(CATALOG_PATH);
-    } else if (account?.companyId) {
-      addProduct({
-        ...productFields(form),
-        companyId: account.companyId,
-        status: 'active',
-        coinsReward: DEFAULT_REWARD,
-        xpReward: DEFAULT_REWARD,
-      });
-      showToast('success', `${PRODUCT_KIND_LABEL[form.kind]} "${form.title.trim()}" cadastrado e ativo.`);
-      navigate(CATALOG_PATH);
-    }
+    save.mutate(itemPayload(form, !editing), {
+      onSuccess: () => {
+        const name = form.title.trim();
+        showToast('success', editing ? `Alterações em "${name}" salvas.` : `${PRODUCT_KIND_LABEL[form.kind]} "${name}" cadastrado e ativo.`);
+        navigate(CATALOG_PATH);
+      },
+      onError: (error) => {
+        if (error instanceof ApiError && Object.keys(error.errors).length > 0) {
+          const messages = Object.fromEntries(Object.entries(error.errors).map(([field, list]) => [field, list[0] ?? '']));
+          setServerErrors(formErrorsFromServer(messages));
+          focusFirstError();
+        }
+        showToast('error', error instanceof ApiError ? error.message : 'Não deu para salvar agora. Tente de novo.');
+      },
+    });
   };
 
   const errorCount = Object.keys(errors).length;
-  const submitLabel = editing ? 'Salvar alterações' : `Cadastrar ${kindLabel}`;
+  const submitLabel = save.isPending ? 'Salvando...' : editing ? 'Salvar alterações' : `Cadastrar ${kindLabel}`;
 
   return (
     <form onSubmit={submit} noValidate className="flex flex-col gap-lg px-lg py-xl lg:px-xxl">
@@ -164,7 +213,7 @@ export default function ItemFormScreen() {
         </div>
         <div className="hidden shrink-0 gap-md lg:flex">
           <Button label="Cancelar" variant="outline" to={CATALOG_PATH} />
-          <Button label={submitLabel} type="submit" />
+          <Button label={submitLabel} type="submit" disabled={save.isPending} />
         </div>
       </div>
 
@@ -220,7 +269,13 @@ export default function ItemFormScreen() {
 
         <FormSection title="Fotos e vídeos" description="A primeira foto aparece na lista e no app.">
           <div data-field-error={errors.media ? true : undefined}>
-            <MediaPicker media={form.media} onChange={(media) => update({ media })} error={errors.media} />
+            <MediaPicker
+              media={form.media}
+              onChange={(media) => update({ media })}
+              onAdd={addMedia}
+              onRetry={retryMedia}
+              error={errors.media}
+            />
           </div>
         </FormSection>
 
@@ -283,8 +338,44 @@ export default function ItemFormScreen() {
 
       <div className="flex flex-col-reverse gap-md sm:flex-row sm:justify-end lg:hidden">
         <Button label="Cancelar" variant="outline" to={CATALOG_PATH} />
-        <Button label={submitLabel} type="submit" />
+        <Button label={submitLabel} type="submit" disabled={save.isPending} />
       </div>
     </form>
   );
+}
+
+function EditItem({ itemId }: { itemId: number }) {
+  const item = useCatalogItem(itemId);
+
+  if (item.isPending) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando o item..." />
+      </div>
+    );
+  }
+  if (item.isError) {
+    if (item.error instanceof ApiError && item.error.status === NOT_FOUND) return <Navigate to={CATALOG_PATH} replace />;
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <EmptyNotice
+          mood="confused"
+          title="Não deu para carregar o item"
+          text="Confira a internet e tente de novo."
+          action={<Button label="Tentar de novo" variant="outline" onClick={() => void item.refetch()} />}
+        />
+      </div>
+    );
+  }
+  return <ItemFormContent key={itemId} itemId={itemId} initial={formFromItem(catalogItemFromApi(item.data))} />;
+}
+
+export default function ItemFormScreen() {
+  const { kind: kindSlug, id } = useParams();
+  const newKind = kindSlug ? KIND_BY_SLUG[kindSlug] : undefined;
+  const itemId = id && /^\d{1,18}$/.test(id) ? Number(id) : null;
+
+  if (id) return itemId === null ? <Navigate to={CATALOG_PATH} replace /> : <EditItem itemId={itemId} />;
+  if (!newKind) return <Navigate to={CATALOG_PATH} replace />;
+  return <ItemFormContent key={newKind} itemId={null} initial={emptyItemForm(newKind)} />;
 }

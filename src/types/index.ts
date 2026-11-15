@@ -3,6 +3,8 @@ export type { Toast, ToastTone } from './toast';
 export { PANEL_LABEL, PANEL_PATH } from './account';
 export type {
   BrazilState,
+  CatalogItem,
+  CatalogItemMedia,
   DurationUnit,
   MediaKind,
   MunicipalityData,

@@ -147,3 +147,9 @@ export function averagesByDay(reviews: Review[]): DayAverages[] {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([day, list]) => ({ day, count: list.length, ...averagesOf(list) }));
 }
+
+const PANEL_TIMEZONE = 'America/Sao_Paulo';
+
+export function todayInPanel(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: PANEL_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}

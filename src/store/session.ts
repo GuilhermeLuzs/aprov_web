@@ -14,6 +14,7 @@ import {
   type ApiPanelCompany,
   type CompanyRegistrationPayload,
 } from '../api';
+import { queryClient } from '../queries/client';
 import { accounts as seededAccounts, companies as seededCompanies } from '../mocks';
 import type { Account, Company, CompanySize, Modality } from '../types';
 
@@ -74,6 +75,7 @@ function accountFromApi(api: ApiPanelAccount): Account {
 }
 
 function setSession(api: ApiPanelAccount | null): void {
+  if (!api || String(api.id) !== state.current?.id) queryClient.clear();
   state = {
     status: 'ready',
     current: api ? accountFromApi(api) : null,
