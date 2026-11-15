@@ -15,6 +15,5 @@ export type Account = {
   role: Role;
   name: string;
   email: string;
-  password: string;
   companyId?: string;
 };

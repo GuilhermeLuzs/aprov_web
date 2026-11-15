@@ -77,7 +77,7 @@ export default function MasterProfileScreen() {
 
       <div className="grid items-start gap-lg lg:grid-cols-2">
         <ProfileDataForm key={`${account.name}-${account.email}`} account={account} />
-        <PasswordForm account={account} />
+        <PasswordForm />
       </div>
 
       <section className="flex flex-col gap-lg">

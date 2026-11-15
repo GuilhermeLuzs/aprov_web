@@ -11,6 +11,9 @@ import '@fontsource/figtree/500.css';
 import '@fontsource/figtree/600.css';
 import './theme/theme.css';
 import { AppRoutes } from './navigation/AppRoutes';
+import { restoreSession } from './store/session';
+
+void restoreSession();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

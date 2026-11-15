@@ -8,8 +8,6 @@ import { PANEL_PATH } from '../../../types';
 
 type LoginState = { registeredEmail?: string } | null;
 
-const INVALID_CREDENTIALS = 'E-mail ou senha incorretos.';
-
 export default function LoginScreen() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,17 +16,20 @@ export default function LoginScreen() {
   const [email, setEmail] = useState(registeredEmail ?? '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
-  const canSubmit = email.trim() !== '' && password !== '';
+  const canSubmit = email.trim() !== '' && password !== '' && !sending;
 
-  const submit = (event: SubmitEvent) => {
+  const submit = async (event: SubmitEvent) => {
     event.preventDefault();
-    const account = signIn(email, password);
-    if (!account) {
-      setError(INVALID_CREDENTIALS);
+    setSending(true);
+    const result = await signIn(email, password);
+    setSending(false);
+    if (!result.ok) {
+      setError(result.message);
       return;
     }
-    navigate(PANEL_PATH[account.role], { replace: true });
+    navigate(PANEL_PATH[result.account.role], { replace: true });
   };
 
   return (
@@ -40,7 +41,7 @@ export default function LoginScreen() {
         </p>
       ) : null}
 
-      <form onSubmit={submit} className="flex flex-col gap-lg" noValidate>
+      <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-lg" noValidate>
         <TextField
           label="E-mail"
           type="email"
@@ -68,7 +69,7 @@ export default function LoginScreen() {
         <Link to="/recuperar-senha" className="self-end font-semibold text-caption text-primary hover:text-primary-press">
           Esqueci minha senha
         </Link>
-        <Button label="Entrar" type="submit" disabled={!canSubmit} fullWidth />
+        <Button label={sending ? 'Entrando...' : 'Entrar'} type="submit" disabled={!canSubmit} fullWidth />
       </form>
 
       <p className="text-center text-ink-muted">

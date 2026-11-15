@@ -1,71 +1,152 @@
 import { useSyncExternalStore } from 'react';
+import {
+  ApiError,
+  apiChangePanelPassword,
+  apiPanelLogin,
+  apiPanelLogout,
+  apiPanelMe,
+  apiRegisterCompany,
+  apiUpdatePanelProfile,
+  onUnauthorized,
+  type ApiCompanySize,
+  type ApiModality,
+  type ApiPanelAccount,
+  type ApiPanelCompany,
+  type CompanyRegistrationPayload,
+} from '../api';
 import { accounts as seededAccounts, companies as seededCompanies } from '../mocks';
-import type { Account, Company, CompanyResponsible } from '../types';
-import { onlyDigits } from '../utils/validation';
+import type { Account, Company, CompanySize, Modality } from '../types';
 
-type SessionState = {
-  accounts: Account[];
-  companies: Company[];
-  current: Account | null;
-};
+type SessionStatus = 'loading' | 'ready';
 
-export type CompanyRegistration = Omit<Company, 'id'> & {
-  responsible: CompanyResponsible;
-  password: string;
-};
+type SessionState = { status: SessionStatus; current: Account | null; company: Company | null };
 
-export type RegistrationResult = { ok: true } | { ok: false; reason: 'cnpj' | 'email' };
+export type FieldErrors = Record<string, string>;
 
-let state: SessionState = { accounts: seededAccounts, companies: seededCompanies, current: null };
+export type ActionResult = { ok: true } | { ok: false; message: string; errors: FieldErrors };
+
+const MODALITY_FROM_API: Record<ApiModality, Modality> = { physical: 'presencial', online: 'online', hybrid: 'hibrida' };
+
+export const MODALITY_TO_API: Record<Modality, ApiModality> = { presencial: 'physical', online: 'online', hibrida: 'hybrid' };
+
+const SIZE_FROM_API: Record<ApiCompanySize, CompanySize> = { micro: 'micro', small: 'pequena', medium: 'media', large: 'grande' };
+
+export const SIZE_TO_API: Record<CompanySize, ApiCompanySize> = { micro: 'micro', pequena: 'small', media: 'medium', grande: 'large' };
+
+const mockCompanyId = (apiId: number) => `c${apiId}`;
+
+let state: SessionState = { status: 'loading', current: null, company: null };
 const listeners = new Set<() => void>();
 
 function emit() {
   listeners.forEach((listener) => listener());
 }
 
-function sameEmail(a: string, b: string) {
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
+function addressOf(company: ApiPanelCompany): string {
+  const complement = company.complement ? ` - ${company.complement}` : '';
+  return `${company.street}, ${company.number}${complement}, ${company.district}, ${company.city}/${company.state}`;
 }
 
-export function isCnpjTaken(cnpj: string): boolean {
-  return state.companies.some((c) => onlyDigits(c.cnpj) === onlyDigits(cnpj));
-}
-
-export function isEmailTaken(email: string): boolean {
-  return state.accounts.some((a) => sameEmail(a.email, email));
-}
-
-export function signIn(email: string, password: string): Account | null {
-  const account = state.accounts.find((a) => sameEmail(a.email, email) && a.password === password);
-  if (!account) return null;
-  state = { ...state, current: account };
-  emit();
-  return account;
-}
-
-export function signOut(): void {
-  state = { ...state, current: null };
-  emit();
-}
-
-export function registerCompany(registration: CompanyRegistration): RegistrationResult {
-  if (isCnpjTaken(registration.cnpj)) return { ok: false, reason: 'cnpj' };
-  if (isEmailTaken(registration.responsible.email)) return { ok: false, reason: 'email' };
-
-  const { responsible, password, ...companyData } = registration;
-  const id = `c-${Date.now()}`;
-  const company: Company = { id, ...companyData };
-  const account: Account = {
-    id: `a-${Date.now()}`,
-    role: 'empresa',
+function companyFromApi(company: ApiPanelCompany): Company {
+  return {
+    id: mockCompanyId(company.id),
+    cnpj: company.cnpj,
     name: company.name,
-    email: responsible.email.trim(),
-    password,
-    companyId: id,
+    address: addressOf(company),
+    email: company.email,
+    phone: company.phone,
+    category: company.niche,
+    modality: MODALITY_FROM_API[company.modality],
+    size: SIZE_FROM_API[company.size],
+    description: company.description ?? undefined,
+    logoUrl: company.logoUrl ?? undefined,
   };
-  state = { ...state, companies: [...state.companies, company], accounts: [...state.accounts, account] };
+}
+
+function accountFromApi(api: ApiPanelAccount): Account {
+  return {
+    id: String(api.id),
+    role: api.role === 'company' ? 'empresa' : 'master',
+    name: api.name,
+    email: api.email,
+    companyId: api.company ? mockCompanyId(api.company.id) : undefined,
+  };
+}
+
+function setSession(api: ApiPanelAccount | null): void {
+  state = {
+    status: 'ready',
+    current: api ? accountFromApi(api) : null,
+    company: api?.company ? companyFromApi(api.company) : null,
+  };
   emit();
-  return { ok: true };
+}
+
+function failure(error: unknown, fallback: string): ActionResult {
+  if (error instanceof ApiError) {
+    const errors = Object.fromEntries(Object.entries(error.errors).map(([field, messages]) => [field, messages[0] ?? '']));
+    return { ok: false, message: error.message, errors };
+  }
+  return { ok: false, message: fallback, errors: {} };
+}
+
+onUnauthorized(() => {
+  if (state.current) setSession(null);
+});
+
+export async function restoreSession(): Promise<void> {
+  try {
+    setSession(await apiPanelMe());
+  } catch {
+    setSession(null);
+  }
+}
+
+export type SignInResult = { ok: true; account: Account } | { ok: false; message: string };
+
+export async function signIn(email: string, password: string): Promise<SignInResult> {
+  try {
+    const api = await apiPanelLogin(email.trim(), password);
+    setSession(api);
+    return { ok: true, account: accountFromApi(api) };
+  } catch (error) {
+    return { ok: false, message: error instanceof ApiError ? error.message : 'Não deu para entrar agora. Tente de novo.' };
+  }
+}
+
+export async function signOut(): Promise<void> {
+  try {
+    await apiPanelLogout();
+  } finally {
+    setSession(null);
+  }
+}
+
+export async function registerCompany(payload: CompanyRegistrationPayload): Promise<ActionResult> {
+  try {
+    await apiRegisterCompany(payload);
+    return { ok: true };
+  } catch (error) {
+    return failure(error, 'Não deu para cadastrar agora. Tente de novo.');
+  }
+}
+
+export async function updateProfile(profile: { name: string; email: string }): Promise<ActionResult> {
+  try {
+    setSession(await apiUpdatePanelProfile({ name: profile.name.trim(), email: profile.email.trim() }));
+    return { ok: true };
+  } catch (error) {
+    return failure(error, 'Não deu para salvar agora. Tente de novo.');
+  }
+}
+
+export async function changePassword(current: string, next: string): Promise<ActionResult> {
+  try {
+    await apiChangePanelPassword(current, next);
+    return { ok: true };
+  } catch (error) {
+    return failure(error, 'Não deu para trocar a senha agora. Tente de novo.');
+  }
 }
 
 function subscribe(listener: () => void) {
@@ -75,43 +156,24 @@ function subscribe(listener: () => void) {
   };
 }
 
+export function useSessionStatus(): SessionStatus {
+  return useSyncExternalStore(subscribe, () => state.status);
+}
+
 export function useCurrentAccount(): Account | null {
   return useSyncExternalStore(subscribe, () => state.current);
 }
 
-export type ProfileResult = { ok: true } | { ok: false; reason: 'email' };
-
-export function updateProfile(accountId: string, profile: { name: string; email: string }): ProfileResult {
-  const email = profile.email.trim();
-  if (state.accounts.some((a) => a.id !== accountId && sameEmail(a.email, email))) return { ok: false, reason: 'email' };
-  const accounts = state.accounts.map((a) => (a.id === accountId ? { ...a, name: profile.name.trim(), email } : a));
-  state = { ...state, accounts, current: accounts.find((a) => a.id === state.current?.id) ?? state.current };
-  emit();
-  return { ok: true };
-}
-
-export function changePassword(accountId: string, current: string, next: string): boolean {
-  if (!state.accounts.some((a) => a.id === accountId && a.password === current)) return false;
-  const accounts = state.accounts.map((a) => (a.id === accountId ? { ...a, password: next } : a));
-  state = { ...state, accounts, current: accounts.find((a) => a.id === state.current?.id) ?? state.current };
-  emit();
-  return true;
+export function useCurrentCompany(): Company | null {
+  return useSyncExternalStore(subscribe, () => state.company);
 }
 
 export function useAccountName(): (accountId: string) => string {
-  const accounts = useSyncExternalStore(subscribe, () => state.accounts);
-  return (accountId) => accounts.find((a) => a.id === accountId)?.name ?? 'Conta removida';
+  const current = useCurrentAccount();
+  return (accountId) =>
+    accountId === current?.id ? current.name : (seededAccounts.find((a) => a.id === accountId)?.name ?? 'Conta removida');
 }
 
 export function useCompanies(): Company[] {
-  return useSyncExternalStore(subscribe, () => state.companies);
-}
-
-function currentCompany(): Company | null {
-  const companyId = state.current?.companyId;
-  return companyId ? (state.companies.find((c) => c.id === companyId) ?? null) : null;
-}
-
-export function useCurrentCompany(): Company | null {
-  return useSyncExternalStore(subscribe, currentCompany);
+  return seededCompanies;
 }

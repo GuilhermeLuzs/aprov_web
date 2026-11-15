@@ -74,9 +74,9 @@ function PanelNav({ role, onNavigate }: { role: Role; onNavigate: () => void }) 
         tickets.filter((t) => t.status === 'open').length
       : 0;
 
-  const leave = () => {
+  const leave = async () => {
     onNavigate();
-    signOut();
+    await signOut();
     navigate('/login', { replace: true });
   };
 
@@ -89,7 +89,7 @@ function PanelNav({ role, onNavigate }: { role: Role; onNavigate: () => void }) 
       </div>
       <div className="flex flex-col gap-xs border-t border-border pt-md">
         <Item {...PROFILE} to={PROFILE_PATH[role]} onNavigate={onNavigate} />
-        <button type="button" onClick={leave} className={`${ITEM} text-ink-muted hover:bg-surface-alt hover:text-ink`}>
+        <button type="button" onClick={() => void leave()} className={`${ITEM} text-ink-muted hover:bg-surface-alt hover:text-ink`}>
           <LogOut size={icon.size.md} strokeWidth={icon.strokeWidth} aria-hidden />
           Sair
         </button>
