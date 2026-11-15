@@ -1,103 +1,91 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import {
   BarList,
   CategoryCounts,
   EmptyNotice,
+  LoadingNotice,
   PeriodFilter,
   StatTile,
   type BarListItem,
   type CategoryCount,
 } from '../../../components';
 import { RatingTrendChart } from '../../../components/RatingTrendChart';
-import { mockToday, reviews, tagById } from '../../../mocks';
-import { useProducts } from '../../../store/catalog';
-import { useCurrentAccount } from '../../../store/session';
+import type { ApiRankedItem } from '../../../api';
+import { useCompanyOverview } from '../../../queries/overview';
+import { useCurrentCompany } from '../../../store/session';
 import { CATEGORY_LABEL, CHARACTERISTICS, CHARACTERISTIC_LABEL, PRODUCT_KIND_LABEL, type Category } from '../../../types';
 import { formatRating, plural } from '../../../utils/format';
 import {
-  averagesByDay,
-  averagesOf,
-  countByDay,
-  countByWeekday,
-  inRange,
+  averagesFromApi,
   presetRange,
-  productScores,
   ratingTone,
-  scoreExtremes,
-  tagCounts,
+  todayInPanel,
   type DayRange,
   type PeriodKey,
-  type ProductScore,
 } from '../../../utils/overview';
 import { VolumeChart } from './VolumeChart';
 
-const TOP_TAGS = 5;
-const TOP_ITEMS = 5;
 const MAX_RATING = 5;
 const INVALID_RANGE = 'A data final precisa ser igual ou depois da inicial.';
 
-function scoreItem(score: ProductScore): BarListItem {
+function scoreItem(score: ApiRankedItem): BarListItem {
   return {
-    id: score.product.id,
-    label: score.product.title,
+    id: String(score.id),
+    label: score.title,
     value: score.average,
     valueLabel: formatRating(score.average),
-    detail: `${PRODUCT_KIND_LABEL[score.product.kind]} · ${plural(score.count, 'avaliação', 'avaliações')}`,
-    imageUrl: score.product.imageUrl,
+    detail: `${PRODUCT_KIND_LABEL[score.kind]} · ${plural(score.count, 'avaliação', 'avaliações')}`,
+    imageUrl: score.coverUrl ?? '',
     tone: ratingTone(score.average),
   };
 }
 
 export default function CompanyOverviewScreen() {
-  const account = useCurrentAccount();
-  const companyProducts = useProducts().filter((p) => p.companyId === account?.companyId);
-  const companyReviews = reviews.filter((r) => r.companyId === account?.companyId);
-
+  const company = useCurrentCompany();
+  const [today] = useState(todayInPanel);
   const [period, setPeriod] = useState<PeriodKey>('30d');
-  const [custom, setCustom] = useState<DayRange>(presetRange('30d', mockToday));
+  const [custom, setCustom] = useState<DayRange>(() => presetRange('30d', today));
 
   const customInvalid = period === 'custom' && custom.start > custom.end;
-  const range = period === 'custom' ? custom : presetRange(period, mockToday);
+  const range = period === 'custom' ? custom : presetRange(period, today);
+  const overview = useCompanyOverview(range.start, range.end, !customInvalid);
 
-  const scoped = useMemo(
-    () => (customInvalid ? [] : inRange(companyReviews, range)),
-    [companyReviews, range, customInvalid],
-  );
+  if (overview.isPending && !customInvalid) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando a visão geral..." />
+      </div>
+    );
+  }
 
-  const averages = averagesOf(scoped);
-  const extremes = scoreExtremes(productScores(scoped, companyProducts), TOP_ITEMS);
-  const positive = tagCounts(scoped, tagById, 'positive').slice(0, TOP_TAGS);
-  const negative = tagCounts(scoped, tagById, 'negative').slice(0, TOP_TAGS);
+  const data = overview.data;
+  const catalog = data?.catalog ?? { total: 0, products: 0, services: 0, categories: {} };
+  const periodData = customInvalid ? undefined : data?.period;
+  const scoped = { length: periodData?.count ?? 0 };
+  const averages = averagesFromApi(periodData?.averages ?? { overall: null, delivery: null, quality: null, conformity: null, value: null });
+  const extremes = { best: periodData?.best ?? [], worst: periodData?.worst ?? [] };
+  const positive = (periodData?.positiveTags ?? []).map((tag) => ({ tag: { id: String(tag.id), label: tag.label }, count: tag.count }));
+  const negative = (periodData?.negativeTags ?? []).map((tag) => ({ tag: { id: String(tag.id), label: tag.label }, count: tag.count }));
   const maxTag = Math.max(0, ...positive.map((t) => t.count), ...negative.map((t) => t.count));
+  const companyProducts = { length: catalog.total };
 
-  const categoryTotals = companyProducts.reduce<Partial<Record<Category, number>>>((counts, product) => {
-    product.categories.forEach((category) => {
-      counts[category] = (counts[category] ?? 0) + 1;
-    });
-    return counts;
-  }, {});
-  const categoryCounts: CategoryCount[] = (Object.entries(categoryTotals) as [Category, number][])
+  const categoryCounts: CategoryCount[] = (Object.entries(catalog.categories) as [Category, number][])
     .map(([category, count]) => ({ label: CATEGORY_LABEL[category], count }))
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 
-  const productCount = companyProducts.filter((p) => p.kind === 'product').length;
-  const kindDetail = `Tipo: ${plural(productCount, 'produto', 'produtos')} · ${plural(
-    companyProducts.length - productCount,
-    'serviço',
-    'serviços',
-  )}`;
+  const kindDetail = `Tipo: ${plural(catalog.products, 'produto', 'produtos')} · ${plural(catalog.services, 'serviço', 'serviços')}`;
 
   const heading = (
     <div className="flex flex-col gap-xs">
       <h1 className="font-display font-bold text-display text-ink">Visão geral</h1>
       <p className="text-ink-muted">
-        Como os clientes avaliaram os itens da <span className="sensitive">{account?.name ?? 'sua empresa'}</span>.
+        Como os clientes avaliaram os itens da <span className="sensitive">{company?.name ?? 'sua empresa'}</span>.
       </p>
     </div>
   );
 
-  if (companyReviews.length === 0) {
+  if (data && data.totalReviews === 0) {
     return (
       <div className="flex flex-col gap-xl px-lg py-xl lg:px-xxl">
         {heading}
@@ -155,12 +143,12 @@ export default function CompanyOverviewScreen() {
           </div>
 
           <RatingTrendChart
-            data={averagesByDay(scoped)}
+            data={(periodData?.days ?? []).map(({ day, count, ...dayAverages }) => ({ day, count, ...averagesFromApi(dayAverages) }))}
             title="Notas ao longo do período"
             description="Média do dia, de 1 a 5, nos dias que tiveram avaliação."
           />
 
-          <VolumeChart byDay={countByDay(scoped, range)} byWeekday={countByWeekday(scoped)} />
+          <VolumeChart byDay={periodData?.byDay ?? []} byWeekday={periodData?.byWeekday ?? []} />
 
           <section className="flex min-w-zero flex-col gap-lg rounded-card border border-border bg-surface p-lg">
             <div className="flex flex-wrap items-start justify-between gap-md">

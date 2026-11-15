@@ -153,3 +153,19 @@ const PANEL_TIMEZONE = 'America/Sao_Paulo';
 export function todayInPanel(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: PANEL_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
+
+export function averagesFromApi(averages: {
+  overall: number | null;
+  delivery: number | null;
+  quality: number | null;
+  conformity: number | null;
+  value: number | null;
+}): Averages {
+  return {
+    overall: averages.overall ?? 0,
+    entrega: averages.delivery ?? 0,
+    qualidade: averages.quality ?? 0,
+    conformidade: averages.conformity ?? 0,
+    custoBeneficio: averages.value ?? 0,
+  };
+}
