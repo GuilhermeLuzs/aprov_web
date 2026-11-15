@@ -87,3 +87,20 @@ export type Product = {
   coinsReward: number;
   xpReward: number;
 };
+
+export type CatalogItemMedia = { id: number; kind: MediaKind; url: string; coverUrl: string | null };
+
+export type CatalogItem = {
+  id: number;
+  kind: ProductKind;
+  categories: Category[];
+  title: string;
+  description: string;
+  coverUrl: string;
+  media: CatalogItemMedia[];
+  brand?: string;
+  service?: ServiceDetails;
+  status: ProductStatus;
+  average: number | null;
+  count: number;
+};

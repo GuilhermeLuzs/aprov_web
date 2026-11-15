@@ -1,15 +1,8 @@
-import type {
-  Category,
-  DurationUnit,
-  MediaKind,
-  Product,
-  ProductKind,
-  ProductMedia,
-  Recurrence,
-  ServiceModality,
-} from '../types';
+import type { ItemPayload } from '../api';
+import type { CatalogItem, Category, DurationUnit, MediaKind, ProductKind, Recurrence, ServiceModality } from '../types';
 import { MINUTES_PER_UNIT, type ServiceCity } from '../types';
-import { formatCep, isValidCep } from './validation';
+import { MODALITY_TO_API, RECURRENCE_TO_API } from './catalog';
+import { isValidCep, onlyDigits } from './validation';
 
 export const MAX_MEDIA = 6;
 export const TITLE_MAX = 120;
@@ -27,12 +20,24 @@ const MEDIA_RULES: Record<MediaKind, { types: string[]; maxBytes: number; label:
 export const ACCEPTED_MEDIA = [...MEDIA_RULES.photo.types, ...MEDIA_RULES.video.types].join(',');
 export const MEDIA_HINT = `Até ${MAX_MEDIA} arquivos: ${MEDIA_RULES.photo.label} e ${MEDIA_RULES.video.label}. A primeira foto é a capa.`;
 
+export type FormMedia = {
+  key: string;
+  kind: MediaKind;
+  url: string;
+  posterUrl?: string;
+  name: string;
+  serverId: number | null;
+  progress: number;
+  error: string | null;
+  file?: File;
+};
+
 export type ItemForm = {
   kind: ProductKind;
   title: string;
   description: string;
   categories: Category[];
-  media: ProductMedia[];
+  media: FormMedia[];
   brand: string;
   durationAmount: string;
   durationUnit: DurationUnit;
@@ -61,24 +66,32 @@ export function emptyItemForm(kind: ProductKind): ItemForm {
   };
 }
 
-export function mediaOf(product: Product): ProductMedia[] {
-  if (product.media && product.media.length > 0) return product.media;
-  return [{ id: `${product.id}-capa`, kind: 'photo', url: product.imageUrl, name: 'Capa' }];
+function mediaOf(item: CatalogItem): FormMedia[] {
+  return item.media.map((file, index) => ({
+    key: `salva-${file.id}`,
+    kind: file.kind,
+    url: file.url,
+    posterUrl: file.coverUrl ?? undefined,
+    name: file.kind === 'photo' ? `Foto ${index + 1}` : `Vídeo ${index + 1}`,
+    serverId: file.id,
+    progress: 1,
+    error: null,
+  }));
 }
 
-export function formFromProduct(product: Product): ItemForm {
+export function formFromItem(item: CatalogItem): ItemForm {
   return {
-    kind: product.kind,
-    title: product.title,
-    description: product.description,
-    categories: product.categories,
-    media: mediaOf(product),
-    brand: product.brand ?? '',
-    ...durationFields(product.service?.durationMinutes),
-    recurrence: product.service?.recurrence ?? '',
-    modality: product.service?.modality ?? '',
-    cep: product.service?.cep ?? '',
-    cities: product.service?.cities ?? [],
+    kind: item.kind,
+    title: item.title,
+    description: item.description,
+    categories: item.categories,
+    media: mediaOf(item),
+    brand: item.brand ?? '',
+    ...durationFields(item.service?.durationMinutes),
+    recurrence: item.service?.recurrence ?? '',
+    modality: item.service?.modality ?? '',
+    cep: item.service?.cep ?? '',
+    cities: item.service?.cities ?? [],
   };
 }
 
@@ -92,31 +105,44 @@ export function durationInMinutes(form: Pick<ItemForm, 'durationAmount' | 'durat
   return Number(form.durationAmount) * MINUTES_PER_UNIT[form.durationUnit];
 }
 
-export function coverOf(media: ProductMedia[]): string {
+export function coverOf(media: FormMedia[]): string {
   return media.find((item) => item.kind === 'photo')?.url ?? '';
 }
 
-export function productFields(form: ItemForm): Pick<Product, 'kind' | 'title' | 'description' | 'categories' | 'imageUrl' | 'media' | 'brand' | 'service'> {
-  const base = {
-    kind: form.kind,
+export function itemPayload(form: ItemForm, creating: boolean): ItemPayload {
+  const base: ItemPayload = {
+    ...(creating ? { kind: form.kind } : {}),
     title: form.title.trim(),
     description: form.description.trim(),
     categories: form.categories,
-    imageUrl: coverOf(form.media),
-    media: form.media,
+    mediaIds: form.media.flatMap((item) => (item.serverId === null ? [] : [item.serverId])),
   };
-  if (form.kind === 'product') return { ...base, brand: form.brand.trim() || undefined, service: undefined };
+  if (form.kind === 'product') return { ...base, brand: form.brand.trim() || null };
+  const modality = form.modality as ServiceModality;
   return {
     ...base,
-    brand: undefined,
-    service: {
-      durationMinutes: durationInMinutes(form),
-      recurrence: form.recurrence as Recurrence,
-      modality: form.modality as ServiceModality,
-      cep: form.modality === 'presencial' ? formatCep(form.cep) : undefined,
-      cities: form.modality === 'domicilio' ? form.cities : undefined,
-    },
+    durationMinutes: durationInMinutes(form),
+    recurrence: RECURRENCE_TO_API[form.recurrence as Recurrence],
+    modality: MODALITY_TO_API[modality],
+    cep: modality === 'presencial' ? onlyDigits(form.cep) : null,
+    cities: modality === 'domicilio' ? form.cities.map((city) => city.ibge) : [],
   };
+}
+
+const SERVER_FIELD: Record<string, keyof ItemForm> = {
+  mediaIds: 'media',
+  durationMinutes: 'durationAmount',
+  kind: 'title',
+};
+
+export function formErrorsFromServer(errors: Record<string, string>): ItemFormErrors {
+  const found: ItemFormErrors = {};
+  Object.entries(errors).forEach(([field, message]) => {
+    const root = field.split('.')[0];
+    const key = SERVER_FIELD[root] ?? (root as keyof ItemForm);
+    if (key in emptyItemForm('product') && !found[key]) found[key] = message;
+  });
+  return found;
 }
 
 export function validateItem(form: ItemForm): ItemFormErrors {
@@ -128,7 +154,9 @@ export function validateItem(form: ItemForm): ItemFormErrors {
   if (!description) errors.description = 'Descreva o item.';
   else if (description.length > DESCRIPTION_MAX) errors.description = `Use até ${DESCRIPTION_MAX} caracteres.`;
   if (form.categories.length === 0) errors.categories = 'Escolha pelo menos uma categoria.';
-  if (!form.media.some((item) => item.kind === 'photo')) errors.media = 'Adicione pelo menos uma foto, que vira a capa do item.';
+  if (form.media.some((item) => item.error)) errors.media = 'Tire ou envie de novo o arquivo que não subiu.';
+  else if (form.media.some((item) => item.serverId === null)) errors.media = 'Espere os arquivos terminarem de enviar.';
+  else if (!form.media.some((item) => item.kind === 'photo')) errors.media = 'Adicione pelo menos uma foto, que vira a capa do item.';
   else if (form.media.length > MAX_MEDIA) errors.media = `Cada item pode ter no máximo ${MAX_MEDIA} fotos ou vídeos.`;
 
   if (form.kind === 'product') {

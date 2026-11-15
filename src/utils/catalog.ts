@@ -1,5 +1,7 @@
-import type { Category, Product, ProductKind, ProductStatus, Review } from '../types';
+import type { ApiPanelItem, ApiRecurrence, ApiServiceModality, CatalogQuery } from '../api';
+import type { CatalogItem, Category, Product, ProductKind, ProductStatus, Recurrence, Review, ServiceModality } from '../types';
 import { reviewAverage } from './overview';
+import { formatCep } from './validation';
 
 export type CatalogRow = { product: Product; average: number | null; count: number };
 
@@ -9,6 +11,61 @@ export function catalogRows(products: Product[], reviews: Review[]): CatalogRow[
     const average = own.length === 0 ? null : own.reduce((sum, r) => sum + reviewAverage(r), 0) / own.length;
     return { product, average, count: own.length };
   });
+}
+
+export const MODALITY_FROM_API: Record<ApiServiceModality, ServiceModality> = {
+  remote: 'remoto',
+  on_site: 'presencial',
+  at_home: 'domicilio',
+};
+
+export const MODALITY_TO_API: Record<ServiceModality, ApiServiceModality> = {
+  remoto: 'remote',
+  presencial: 'on_site',
+  domicilio: 'at_home',
+};
+
+export const RECURRENCE_FROM_API: Record<ApiRecurrence, Recurrence> = {
+  once: 'unica',
+  weekly: 'semanal',
+  biweekly: 'quinzenal',
+  monthly: 'mensal',
+  yearly: 'anual',
+};
+
+export const RECURRENCE_TO_API: Record<Recurrence, ApiRecurrence> = {
+  unica: 'once',
+  semanal: 'weekly',
+  quinzenal: 'biweekly',
+  mensal: 'monthly',
+  anual: 'yearly',
+};
+
+export function catalogItemFromApi(item: ApiPanelItem): CatalogItem {
+  const service = item.service;
+  return {
+    id: item.id,
+    kind: item.kind,
+    categories: item.categories,
+    title: item.title,
+    description: item.description,
+    coverUrl: item.coverUrl ?? '',
+    media: (item.media ?? []).map((file) => ({ id: file.id, kind: file.type, url: file.url, coverUrl: file.coverUrl })),
+    brand: item.brand ?? undefined,
+    service:
+      service && service.durationMinutes && service.recurrence && service.modality
+        ? {
+            durationMinutes: service.durationMinutes,
+            recurrence: RECURRENCE_FROM_API[service.recurrence],
+            modality: MODALITY_FROM_API[service.modality],
+            cep: service.cep ? formatCep(service.cep) : undefined,
+            cities: service.cities ?? [],
+          }
+        : undefined,
+    status: item.active ? 'active' : 'inactive',
+    average: item.averageRating,
+    count: item.reviewCount,
+  };
 }
 
 export type CatalogFilters = {
@@ -24,45 +81,26 @@ export function hasActiveFilters(filters: CatalogFilters): boolean {
   return filters.query.trim() !== '' || filters.categories.length > 0 || filters.status !== '' || filters.kind !== '';
 }
 
-function normalized(text: string): string {
-  return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-}
-
-export function filterRows(rows: CatalogRow[], filters: CatalogFilters): CatalogRow[] {
-  const terms = normalized(filters.query).split(/\s+/).filter(Boolean);
-  return rows.filter(({ product }) => {
-    if (filters.categories.length > 0 && !product.categories.some((c) => filters.categories.includes(c))) return false;
-    if (filters.status && product.status !== filters.status) return false;
-    if (filters.kind && product.kind !== filters.kind) return false;
-    const haystack = normalized(`${product.title} ${product.description}`);
-    return terms.every((term) => haystack.includes(term));
-  });
-}
-
 export type SortKey = 'title' | 'average' | 'count';
 export type SortDirection = 'asc' | 'desc';
 export type CatalogSort = { key: SortKey; direction: SortDirection };
 
 export const DEFAULT_SORT: CatalogSort = { key: 'title', direction: 'asc' };
 
-export function sortRows(rows: CatalogRow[], sort: CatalogSort): CatalogRow[] {
-  const sign = sort.direction === 'asc' ? 1 : -1;
-  return [...rows].sort((a, b) => {
-    if (sort.key === 'average') {
-      if (a.average === null || b.average === null) {
-        if (a.average === b.average) return a.product.title.localeCompare(b.product.title);
-        return a.average === null ? 1 : -1;
-      }
-      return sign * (a.average - b.average) || a.product.title.localeCompare(b.product.title);
-    }
-    if (sort.key === 'count') {
-      return sign * (a.count - b.count) || a.product.title.localeCompare(b.product.title);
-    }
-    return sign * a.product.title.localeCompare(b.product.title, 'pt-BR');
-  });
-}
-
 export function nextSort(current: CatalogSort, key: SortKey): CatalogSort {
   if (current.key !== key) return { key, direction: key === 'title' ? 'asc' : 'desc' };
   return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+}
+
+export function catalogQueryOf(filters: CatalogFilters, search: string, sort: CatalogSort, page: number, perPage: number): CatalogQuery {
+  return {
+    page,
+    perPage,
+    search,
+    categories: filters.categories,
+    status: filters.status,
+    kind: filters.kind,
+    sort: sort.key,
+    direction: sort.direction,
+  };
 }

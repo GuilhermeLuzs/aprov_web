@@ -1,4 +1,4 @@
-export { ApiError, NetworkError, apiRequest, onUnauthorized } from './client';
+export { ApiError, NetworkError, apiRequest, apiUpload, onUnauthorized } from './client';
 export {
   apiChangePanelPassword,
   apiPanelLogin,
@@ -13,3 +13,24 @@ export {
   type CompanyRegistrationPayload,
 } from './panel';
 export { lookupZipCode, type AddressLookup } from './address';
+export {
+  apiCreateItem,
+  apiItemMetrics,
+  apiPanelItem,
+  apiPanelItems,
+  apiSetItemStatus,
+  apiUpdateItem,
+  apiUploadItemMedia,
+  type ApiAverages,
+  type ApiCatalogPage,
+  type ApiItemCity,
+  type ApiItemMedia,
+  type ApiItemMetrics,
+  type ApiPanelItem,
+  type ApiRecurrence,
+  type ApiServiceModality,
+  type ApiTagCount,
+  type CatalogQuery,
+  type ItemPayload,
+  type VideoDetails,
+} from './catalog';

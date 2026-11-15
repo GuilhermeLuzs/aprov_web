@@ -54,6 +54,42 @@ async function send(path: string, method: Method, body: unknown): Promise<Respon
   });
 }
 
+function envelopeOf<T>(text: string): ApiEnvelope<T> | null {
+  try {
+    return JSON.parse(text) as ApiEnvelope<T>;
+  } catch {
+    return null;
+  }
+}
+
+export async function apiUpload<T>(path: string, form: FormData, onProgress: (fraction: number) => void): Promise<T> {
+  if (!csrfToken()) await refreshCsrfToken();
+
+  return new Promise<T>((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('POST', `${API_PATH}/${path}`);
+    request.withCredentials = true;
+    request.setRequestHeader('Accept', 'application/json');
+    const token = csrfToken();
+    if (token) request.setRequestHeader('X-XSRF-TOKEN', token);
+
+    request.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress(event.loaded / event.total);
+    };
+    request.onerror = () => reject(new NetworkError('Não deu para enviar o arquivo. Confira a internet e tente de novo.'));
+    request.onload = () => {
+      if (request.status === UNAUTHORIZED) unauthorizedHandler?.();
+      const envelope = envelopeOf<T>(request.responseText);
+      if (request.status < 200 || request.status >= 300 || !envelope || !envelope.success) {
+        reject(new ApiError(envelope?.message ?? 'Não deu para enviar o arquivo. Tente de novo.', envelope?.errors ?? {}, request.status));
+        return;
+      }
+      resolve(envelope.data as T);
+    };
+    request.send(form);
+  });
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body } = options;
 

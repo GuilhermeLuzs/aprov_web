@@ -1,40 +1,40 @@
 import { ArrowDown, ArrowUp, ArrowUpDown, ChartLine, Pencil } from 'lucide-react';
 import { IconButton, RatingValue, Switch } from '../../../components';
 import { icon } from '../../../theme';
-import { CATEGORY_LABEL, PRODUCT_KIND_LABEL, PRODUCT_STATUS_LABEL } from '../../../types';
-import type { CatalogRow, CatalogSort, SortKey } from '../../../utils/catalog';
+import { CATEGORY_LABEL, PRODUCT_KIND_LABEL, PRODUCT_STATUS_LABEL, type CatalogItem } from '../../../types';
+import type { CatalogSort, SortKey } from '../../../utils/catalog';
 import { formatInt } from '../../../utils/format';
 
 type Props = {
-  rows: CatalogRow[];
+  rows: CatalogItem[];
   sort: CatalogSort;
   onSort: (key: SortKey) => void;
-  onShowMetrics: (row: CatalogRow) => void;
-  onToggleStatus: (row: CatalogRow) => void;
-  onEdit: (row: CatalogRow) => void;
+  onShowMetrics: (row: CatalogItem) => void;
+  onToggleStatus: (row: CatalogItem) => void;
+  onEdit: (row: CatalogItem) => void;
 };
 
-function categoriesOf(row: CatalogRow): string {
-  return row.product.categories.map((category) => CATEGORY_LABEL[category]).join(', ');
+function categoriesOf(row: CatalogItem): string {
+  return row.categories.map((category) => CATEGORY_LABEL[category]).join(', ');
 }
 
-function Actions({ row, onShowMetrics, onEdit }: { row: CatalogRow } & Pick<Props, 'onShowMetrics' | 'onEdit'>) {
+function Actions({ row, onShowMetrics, onEdit }: { row: CatalogItem } & Pick<Props, 'onShowMetrics' | 'onEdit'>) {
   return (
     <div className="flex items-center justify-end gap-xs">
-      <IconButton Icon={ChartLine} label={`Ver as notas de ${row.product.title}`} onClick={() => onShowMetrics(row)} />
-      <IconButton Icon={Pencil} label={`Editar ${row.product.title}`} onClick={() => onEdit(row)} />
+      <IconButton Icon={ChartLine} label={`Ver as notas de ${row.title}`} onClick={() => onShowMetrics(row)} />
+      <IconButton Icon={Pencil} label={`Editar ${row.title}`} onClick={() => onEdit(row)} />
     </div>
   );
 }
 
-function StatusSwitch({ row, onToggleStatus }: { row: CatalogRow } & Pick<Props, 'onToggleStatus'>) {
-  const active = row.product.status === 'active';
+function StatusSwitch({ row, onToggleStatus }: { row: CatalogItem } & Pick<Props, 'onToggleStatus'>) {
+  const active = row.status === 'active';
   return (
     <Switch
       checked={active}
       onChange={() => onToggleStatus(row)}
-      label={`${row.product.title} ${active ? 'ativo' : 'inativo'}`}
-      text={PRODUCT_STATUS_LABEL[row.product.status]}
+      label={`${row.title} ${active ? 'ativo' : 'inativo'}`}
+      text={PRODUCT_STATUS_LABEL[row.status]}
     />
   );
 }
@@ -84,24 +84,24 @@ export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus,
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.product.id} className="border-b border-border last:border-b-0">
+            <tr key={row.id} className="border-b border-border last:border-b-0">
               <td className="max-w-zero px-md py-sm">
                 <div className="flex min-w-zero items-center gap-md">
                   <img
-                    src={row.product.imageUrl}
+                    src={row.coverUrl}
                     alt=""
                     loading="lazy"
                     className="sensitive h-avatar-md w-avatar-md shrink-0 rounded-control bg-surface-alt object-cover"
                   />
                   <div className="flex min-w-zero flex-col">
-                    <span className="sensitive truncate font-semibold text-ink" title={row.product.title}>
-                      {row.product.title}
+                    <span className="sensitive truncate font-semibold text-ink" title={row.title}>
+                      {row.title}
                     </span>
                     <span className="sensitive truncate text-caption text-ink-muted">{categoriesOf(row)}</span>
                   </div>
                 </div>
               </td>
-              <td className="px-md py-sm whitespace-nowrap text-ink-muted">{PRODUCT_KIND_LABEL[row.product.kind]}</td>
+              <td className="px-md py-sm whitespace-nowrap text-ink-muted">{PRODUCT_KIND_LABEL[row.kind]}</td>
               <td className="px-md py-sm whitespace-nowrap">
                 <RatingValue average={row.average} />
               </td>
@@ -119,18 +119,18 @@ export function CatalogList({ rows, sort, onSort, onShowMetrics, onToggleStatus,
 
       <ul className="flex flex-col lg:hidden">
         {rows.map((row) => (
-          <li key={row.product.id} className="flex flex-col gap-sm border-b border-border py-md last:border-b-0">
+          <li key={row.id} className="flex flex-col gap-sm border-b border-border py-md last:border-b-0">
             <div className="flex min-w-zero items-start gap-md">
               <img
-                src={row.product.imageUrl}
+                src={row.coverUrl}
                 alt=""
                 loading="lazy"
                 className="sensitive h-avatar-lg w-avatar-lg shrink-0 rounded-control bg-surface-alt object-cover"
               />
               <div className="flex min-w-zero flex-1 flex-col gap-xs">
-                <span className="sensitive font-semibold text-ink">{row.product.title}</span>
+                <span className="sensitive font-semibold text-ink">{row.title}</span>
                 <span className="text-caption text-ink-muted">
-                  {PRODUCT_KIND_LABEL[row.product.kind]} · <span className="sensitive">{categoriesOf(row)}</span>
+                  {PRODUCT_KIND_LABEL[row.kind]} · <span className="sensitive">{categoriesOf(row)}</span>
                 </span>
                 <div className="flex flex-wrap items-center gap-md text-caption">
                   <RatingValue average={row.average} />

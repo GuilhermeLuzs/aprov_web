@@ -19,22 +19,6 @@ export function setProductStatus(productId: string, status: ProductStatus) {
   emit();
 }
 
-export function addProduct(product: Omit<Product, 'id'>): Product {
-  const created = { ...product, id: `p${Date.now()}` };
-  products = [...products, created];
-  emit();
-  return created;
-}
-
-export function updateProduct(product: Product) {
-  products = products.map((current) => (current.id === product.id ? product : current));
-  emit();
-}
-
-export function findProduct(productId: string): Product | undefined {
-  return products.find((product) => product.id === productId);
-}
-
 export function useProducts(): Product[] {
   return useSyncExternalStore(subscribe, () => products);
 }

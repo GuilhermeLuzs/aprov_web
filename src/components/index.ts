@@ -46,3 +46,4 @@ export { ColorPicker } from './ColorPicker';
 export { IconPicker } from './IconPicker';
 export { Tabs } from './Tabs';
 export { AccountStatusBadge } from './AccountStatusBadge';
+export { LoadingNotice } from './LoadingNotice';

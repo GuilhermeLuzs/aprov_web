@@ -1,19 +1,45 @@
 import { useId, useState, type DragEvent } from 'react';
-import { ChevronLeft, ChevronRight, ImagePlus, Play, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImagePlus, LoaderCircle, Play, RotateCw, Trash2, TriangleAlert } from 'lucide-react';
 import { icon } from '../theme';
-import type { ProductMedia } from '../types';
-import { ACCEPTED_MEDIA, MAX_MEDIA, MEDIA_HINT, acceptMedia, coverOf, type MediaRejection } from '../utils/itemForm';
+import type { MediaKind } from '../types';
+import { ACCEPTED_MEDIA, MAX_MEDIA, MEDIA_HINT, acceptMedia, coverOf, type FormMedia, type MediaRejection } from '../utils/itemForm';
+import { formatPercent } from '../utils/format';
 
 type Props = {
-  media: ProductMedia[];
-  onChange: (media: ProductMedia[]) => void;
+  media: FormMedia[];
+  onChange: (media: FormMedia[]) => void;
+  onAdd: (files: { file: File; kind: MediaKind }[]) => void;
+  onRetry: (key: string) => void;
   error?: string;
 };
 
 const THUMB_BUTTON =
   'flex h-thumb-action w-thumb-action items-center justify-center rounded-pill bg-media-control text-surface transition-colors hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50';
 
-export function MediaPicker({ media, onChange, error }: Props) {
+function UploadState({ item, onRetry }: { item: FormMedia; onRetry: (key: string) => void }) {
+  if (item.error) {
+    return (
+      <div className="absolute inset-zero flex flex-col items-center justify-center gap-xs bg-media-control p-sm text-center text-micro text-surface">
+        <TriangleAlert size={icon.size.md} strokeWidth={icon.strokeWidth} aria-hidden />
+        <span role="alert">{item.error}</span>
+        <button type="button" onClick={() => onRetry(item.key)} aria-label={`Enviar ${item.name} de novo`} className={THUMB_BUTTON}>
+          <RotateCw size={icon.size.sm} strokeWidth={icon.strokeWidth} aria-hidden />
+        </button>
+      </div>
+    );
+  }
+  if (item.serverId === null) {
+    return (
+      <div className="absolute inset-zero flex flex-col items-center justify-center gap-xs bg-media-control text-micro text-surface">
+        <LoaderCircle size={icon.size.md} strokeWidth={icon.strokeWidth} className="animate-spin" aria-hidden />
+        <span aria-live="polite">Enviando {formatPercent(item.progress)}</span>
+      </div>
+    );
+  }
+  return null;
+}
+
+export function MediaPicker({ media, onChange, onAdd, onRetry, error }: Props) {
   const inputId = useId();
   const [dragging, setDragging] = useState(false);
   const [rejected, setRejected] = useState<MediaRejection[]>([]);
@@ -22,14 +48,8 @@ export function MediaPicker({ media, onChange, error }: Props) {
 
   const addFiles = (files: File[]) => {
     const result = acceptMedia(files, media.length);
-    const added: ProductMedia[] = result.accepted.map(({ file, kind }, index) => ({
-      id: `m${Date.now()}-${index}`,
-      kind,
-      url: URL.createObjectURL(file),
-      name: file.name,
-    }));
     setRejected(result.rejected);
-    if (added.length > 0) onChange([...media, ...added]);
+    if (result.accepted.length > 0) onAdd(result.accepted);
   };
 
   const move = (index: number, offset: number) => {
@@ -39,8 +59,8 @@ export function MediaPicker({ media, onChange, error }: Props) {
     onChange(next);
   };
 
-  const remove = (id: string) => {
-    onChange(media.filter((item) => item.id !== id));
+  const remove = (key: string) => {
+    onChange(media.filter((item) => item.key !== key));
     setRejected([]);
   };
 
@@ -58,12 +78,20 @@ export function MediaPicker({ media, onChange, error }: Props) {
 
       <div className="grid grid-cols-3 gap-md sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-3">
         {media.map((item, index) => (
-          <figure key={item.id} className="relative aspect-square overflow-hidden rounded-control bg-surface-alt">
+          <figure key={item.key} className="relative aspect-square overflow-hidden rounded-control bg-surface-alt">
             {item.kind === 'photo' ? (
               <img src={item.url} alt={item.name} className="h-full w-full object-cover" />
             ) : (
               <>
-                <video src={item.url} muted playsInline preload="metadata" className="h-full w-full object-cover" aria-label={item.name} />
+                <video
+                  src={item.url}
+                  poster={item.posterUrl}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="h-full w-full object-cover"
+                  aria-label={item.name}
+                />
                 <span className="absolute inset-zero flex items-center justify-center text-surface" aria-hidden>
                   <Play size={icon.size.lg} strokeWidth={icon.strokeWidth} />
                 </span>
@@ -72,6 +100,7 @@ export function MediaPicker({ media, onChange, error }: Props) {
             {item.url === coverUrl && item.kind === 'photo' ? (
               <span className="absolute top-sm left-sm rounded-pill bg-primary px-sm py-xs font-semibold text-micro text-surface">Capa</span>
             ) : null}
+            <UploadState item={item} onRetry={onRetry} />
             <div className="absolute inset-x-zero bottom-zero flex items-center justify-between gap-xs p-xs">
               <div className="flex gap-xs">
                 <button type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label={`Mover ${item.name} para a esquerda`} className={THUMB_BUTTON}>
@@ -87,7 +116,7 @@ export function MediaPicker({ media, onChange, error }: Props) {
                   <ChevronRight size={icon.size.sm} strokeWidth={icon.strokeWidth} aria-hidden />
                 </button>
               </div>
-              <button type="button" onClick={() => remove(item.id)} aria-label={`Remover ${item.name}`} className={THUMB_BUTTON}>
+              <button type="button" onClick={() => remove(item.key)} aria-label={`Remover ${item.name}`} className={THUMB_BUTTON}>
                 <Trash2 size={icon.size.sm} strokeWidth={icon.strokeWidth} aria-hidden />
               </button>
             </div>
