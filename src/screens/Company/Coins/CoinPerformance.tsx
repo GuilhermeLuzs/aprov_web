@@ -1,25 +1,14 @@
 import { useState } from 'react';
 import { Download } from 'lucide-react';
-import { BarList, EmptyNotice, PeriodFilter, StatTile } from '../../../components';
-import { mockToday, redemptions as allRedemptions, reviews as allReviews } from '../../../mocks';
-import { useProducts } from '../../../store/catalog';
+import { BarList, Button, EmptyNotice, LoadingNotice, PeriodFilter, StatTile } from '../../../components';
+import { useCoinPerformance } from '../../../queries/coins';
 import { icon } from '../../../theme';
 import { REWARD_TOPIC_LABEL, type CoinSettings } from '../../../types';
-import {
-  WEEKLY_FROM_DAYS,
-  coinsByDay,
-  coinsByWeek,
-  earningsInRange,
-  earningsOf,
-  redemptionsInRange,
-  sumEarnings,
-  sumRedemptions,
-  totalsByTopic,
-} from '../../../utils/coinEarnings';
+import { WEEKLY_FROM_DAYS, coinsByWeek, type TopicTotal } from '../../../utils/coinEarnings';
 import { earningsWorkbook } from '../../../utils/coinExport';
-import { formatReais } from '../../../utils/coins';
+import { TOPIC_FROM_API, formatReais } from '../../../utils/coins';
 import { formatInt } from '../../../utils/format';
-import { presetRange, type DayRange, type PeriodKey } from '../../../utils/overview';
+import { presetRange, todayInPanel, type DayRange, type PeriodKey } from '../../../utils/overview';
 import { EarningsChart } from './EarningsChart';
 
 const INVALID_RANGE = 'A data final precisa ser igual ou depois da inicial.';
@@ -35,31 +24,38 @@ function download(name: string, file: Blob) {
 }
 
 export function CoinPerformance({ settings }: { settings: CoinSettings }) {
+  const [today] = useState(todayInPanel);
   const [period, setPeriod] = useState<PeriodKey>('30d');
-  const [custom, setCustom] = useState<DayRange>(presetRange('30d', mockToday));
-  const products = useProducts();
-
-  const kindById = new Map(products.map((p) => [p.id, p.kind]));
-  const reviews = allReviews.filter((r) => r.companyId === settings.companyId);
-  const redemptions = allRedemptions.filter((r) => r.companyId === settings.companyId);
-  const earnings = earningsOf(reviews, (r) => kindById.get(r.productId) ?? 'product', settings);
+  const [custom, setCustom] = useState<DayRange>(() => presetRange('30d', today));
   const coinName = settings.name || 'moedas';
 
   const customInvalid = period === 'custom' && custom.start > custom.end;
-  const range = period === 'custom' ? custom : presetRange(period, mockToday);
-  const scopedEarnings = customInvalid ? [] : earningsInRange(earnings, range);
-  const scopedRedemptions = customInvalid ? [] : redemptionsInRange(redemptions, range);
-
-  const everEarned = sumEarnings(earnings);
-  const inHands = everEarned - sumRedemptions(redemptions);
-  const earned = sumEarnings(scopedEarnings);
-  const redeemed = sumRedemptions(scopedRedemptions);
-  const topics = totalsByTopic(scopedEarnings);
-  const days = coinsByDay(scopedEarnings, scopedRedemptions, range);
-  const weekly = days.length >= WEEKLY_FROM_DAYS;
+  const range = period === 'custom' ? custom : presetRange(period, today);
+  const performance = useCoinPerformance(range.start, range.end, !customInvalid);
   const toReais = (coins: number) => formatReais(coins * settings.valueInReais);
 
-  if (everEarned === 0) {
+  if (performance.isPending && !customInvalid) return <LoadingNotice text="Carregando o desempenho..." />;
+  if (performance.isError) {
+    return (
+      <EmptyNotice
+        mood="confused"
+        title="Não deu para carregar o desempenho"
+        text="Confira a internet e tente de novo."
+        action={<Button label="Tentar de novo" variant="outline" onClick={() => void performance.refetch()} />}
+      />
+    );
+  }
+
+  const data = performance.data;
+  const scoped = data?.period;
+  const days = scoped?.days ?? [];
+  const weekly = days.length >= WEEKLY_FROM_DAYS;
+  const earned = customInvalid ? 0 : (scoped?.earned ?? 0);
+  const redeemed = customInvalid ? 0 : (scoped?.redeemed ?? 0);
+  const topics: TopicTotal[] = (scoped?.topics ?? []).flatMap(({ topic, coins }) => (topic ? [{ topic: TOPIC_FROM_API[topic], coins }] : []));
+  const inHands = data?.inHands ?? 0;
+
+  if (data && data.everEarned === 0) {
     return (
       <EmptyNotice
         mood="neutral"
@@ -109,14 +105,14 @@ export function CoinPerformance({ settings }: { settings: CoinSettings }) {
           value={formatInt(inHands)}
           detail={`${toReais(inHands)} em cupons que ainda podem sair`}
         />
-        <StatTile label={`${coinName} ganhas no período`} value={formatInt(earned)} detail={`${toReais(earned)} em ${formatInt(scopedEarnings.length)} avaliações`} />
-        <StatTile label="Cupons resgatados no período" value={formatInt(scopedRedemptions.length)} detail={`${toReais(redeemed)} em desconto, ${formatInt(redeemed)} ${coinName}`} />
+        <StatTile label={`${coinName} ganhas no período`} value={formatInt(earned)} detail={`${toReais(earned)} em ${formatInt(scoped?.reviews ?? 0)} avaliações`} />
+        <StatTile label="Cupons resgatados no período" value={formatInt(scoped?.coupons ?? 0)} detail={`${toReais(redeemed)} em desconto, ${formatInt(redeemed)} ${coinName}`} />
       </div>
 
       {customInvalid ? null : earned === 0 && redeemed === 0 ? (
         <EmptyNotice mood="confused" title="Nenhuma movimentação neste período" text="Escolha um período maior para ver os ganhos e resgates." />
       ) : (
-        <div className="grid items-start gap-lg xl:grid-cols-3">
+        <div aria-busy={performance.isFetching} className={`grid items-start gap-lg xl:grid-cols-3 ${performance.isPlaceholderData ? 'opacity-50' : ''}`}>
           <div className="min-w-zero xl:col-span-2">
             <EarningsChart data={weekly ? coinsByWeek(days) : days} coinName={coinName} weekly={weekly} valueInReais={settings.valueInReais} />
           </div>
