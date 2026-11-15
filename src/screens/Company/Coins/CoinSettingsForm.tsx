@@ -18,7 +18,8 @@ import { showToast } from '../../../store/toasts';
 
 type Props = {
   settings: CoinSettings;
-  onSave: (settings: CoinSettings) => void;
+  onSave: (settings: CoinSettings) => Promise<string | null>;
+  saving?: boolean;
   toolbar?: ReactNode;
 };
 
@@ -51,7 +52,7 @@ function Card({ title, aside, children }: { title: string; aside?: ReactNode; ch
   );
 }
 
-export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
+export function CoinSettingsForm({ settings, onSave, saving = false, toolbar }: Props) {
   const [form, setForm] = useState<CoinForm>(() => formOf(settings));
   const [errors, setErrors] = useState<CoinFormErrors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -73,7 +74,7 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
   const updateRule = (topic: RewardTopic, rule: RewardRule) =>
     update({ rewards: { ...form.rewards, [kind]: { ...form.rewards[kind], [topic]: rule } } });
 
-  const submit = (event: SubmitEvent) => {
+  const submit = async (event: SubmitEvent) => {
     event.preventDefault();
     const found = validateCoinForm(form, coin.iconColor, coin.minContrast);
     setSubmitted(true);
@@ -85,7 +86,7 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
       showToast('error', 'Não deu para salvar. Confira os campos marcados.');
       return;
     }
-    onSave({
+    const failure = await onSave({
       ...settings,
       name: form.name.trim(),
       color: form.color.trim().toUpperCase(),
@@ -93,6 +94,10 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
       rewards: form.rewards,
       valueInReais: value,
     });
+    if (failure) {
+      showToast('error', failure);
+      return;
+    }
     setForm((current) => ({
       ...current,
       name: current.name.trim(),
@@ -114,7 +119,7 @@ export function CoinSettingsForm({ settings, onSave, toolbar }: Props) {
         {toolbar}
         <div className="flex gap-md">
           <Button label="Descartar alterações" variant="text" onClick={discard} disabled={!dirty} />
-          <Button label="Salvar configuração" type="submit" disabled={!dirty} />
+          <Button label={saving ? 'Salvando...' : 'Salvar configuração'} type="submit" disabled={!dirty || saving} />
         </div>
       </div>
 

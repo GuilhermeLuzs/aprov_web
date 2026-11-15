@@ -34,3 +34,15 @@ export {
   type ItemPayload,
   type VideoDetails,
 } from './catalog';
+export {
+  apiCoinPerformance,
+  apiCoinSettings,
+  apiSaveCoinSettings,
+  apiSetCoinsEnabled,
+  type ApiCoinDay,
+  type ApiCoinPerformance,
+  type ApiCoinSettings,
+  type ApiRewardRule,
+  type ApiRewardTopic,
+  type CoinSettingsPayload,
+} from './coins';

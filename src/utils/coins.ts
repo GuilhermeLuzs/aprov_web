@@ -1,3 +1,4 @@
+import type { ApiCoinSettings, ApiRewardRule, ApiRewardTopic, CoinSettingsPayload } from '../api';
 import {
   REWARD_THRESHOLD,
   REWARD_TOPICS_BY_KIND,
@@ -87,4 +88,58 @@ export function validateCoinForm(form: CoinForm, iconColor: string, minContrast:
   });
   if (Object.keys(rewardErrors).length > 0) errors.rewards = rewardErrors;
   return errors;
+}
+
+export const TOPIC_FROM_API: Record<ApiRewardTopic, RewardTopic> = {
+  completed_review: 'review',
+  min_tags: 'tags',
+  sent_video: 'video',
+  min_valid_photos: 'photos',
+  photo_in_use: 'photoInUse',
+  min_comment_length: 'longComment',
+  coherent_comment: 'consistentComment',
+};
+
+export const TOPIC_TO_API = Object.fromEntries(
+  Object.entries(TOPIC_FROM_API).map(([api, topic]) => [topic, api]),
+) as Record<RewardTopic, ApiRewardTopic>;
+
+function tableFromApi(table: Partial<Record<ApiRewardTopic, ApiRewardRule>>): RewardTable {
+  return Object.fromEntries(
+    Object.entries(table).map(([topic, rule]) => [
+      TOPIC_FROM_API[topic as ApiRewardTopic],
+      rule.threshold === null ? { coins: rule.coins } : { coins: rule.coins, threshold: rule.threshold },
+    ]),
+  );
+}
+
+export function coinSettingsFromApi(api: ApiCoinSettings, companyId: string): CoinSettings {
+  return {
+    companyId,
+    enabled: api.enabled,
+    name: api.name,
+    color: api.color,
+    icon: api.icon,
+    valueInReais: api.valueInReais,
+    rewards: { product: tableFromApi(api.rewards.product), service: tableFromApi(api.rewards.service) },
+  };
+}
+
+function tableToApi(kind: ProductKind, table: RewardTable): Partial<Record<ApiRewardTopic, ApiRewardRule>> {
+  return Object.fromEntries(
+    REWARD_TOPICS_BY_KIND[kind].map((topic) => {
+      const rule = ruleOf(table, topic);
+      return [TOPIC_TO_API[topic], { coins: rule.coins, threshold: REWARD_THRESHOLD[topic] ? (rule.threshold ?? null) : null }];
+    }),
+  );
+}
+
+export function coinSettingsPayload(settings: CoinSettings): CoinSettingsPayload {
+  return {
+    name: settings.name,
+    color: settings.color,
+    icon: settings.icon,
+    valueInReais: settings.valueInReais,
+    rewards: { product: tableToApi('product', settings.rewards.product), service: tableToApi('service', settings.rewards.service) },
+  };
 }

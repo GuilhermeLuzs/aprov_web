@@ -1,7 +1,10 @@
 import { useCallback, useState } from 'react';
-import { Button, EmptyNotice, Modal, Switch, Tabs } from '../../../components';
-import { coinSettingsOrDefault, saveCoinSettings, setCoinsEnabled, useCoinSettings } from '../../../store/coins';
+import { Button, EmptyNotice, LoadingNotice, Modal, Switch, Tabs } from '../../../components';
+import { ApiError } from '../../../api';
+import { useCoinSettingsQuery, useCoinsEnabled, useSaveCoinSettings } from '../../../queries/coins';
 import { useCurrentAccount } from '../../../store/session';
+import type { CoinSettings } from '../../../types';
+import { coinSettingsFromApi, coinSettingsPayload } from '../../../utils/coins';
 import { CoinPerformance } from './CoinPerformance';
 import { CoinSettingsForm } from './CoinSettingsForm';
 import { showToast } from '../../../store/toasts';
@@ -16,23 +19,60 @@ const TABS: { key: CoinTab; label: string }[] = [
 export default function CoinsScreen() {
   const account = useCurrentAccount();
   const companyId = account?.companyId ?? '';
-  const settings = coinSettingsOrDefault(companyId, useCoinSettings(companyId));
+  const query = useCoinSettingsQuery();
+  const save = useSaveCoinSettings();
+  const enabling = useCoinsEnabled();
   const [tab, setTab] = useState<CoinTab>('performance');
   const [confirmingOff, setConfirmingOff] = useState(false);
   const closeConfirm = useCallback(() => setConfirmingOff(false), []);
+
+  if (query.isPending) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando as moedas..." />
+      </div>
+    );
+  }
+  if (query.isError) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <EmptyNotice
+          mood="confused"
+          title="Não deu para carregar as moedas"
+          text="Confira a internet e tente de novo."
+          action={<Button label="Tentar de novo" variant="outline" onClick={() => void query.refetch()} />}
+        />
+      </div>
+    );
+  }
+
+  const settings = coinSettingsFromApi(query.data, companyId);
   const coinName = settings.name || 'moedas';
 
+  const setEnabled = (active: boolean, message: string) => {
+    enabling.mutate(active, {
+      onSuccess: () => showToast('success', message),
+      onError: (error) => showToast('error', error instanceof ApiError ? error.message : 'Não deu para mudar agora. Tente de novo.'),
+    });
+  };
+
   const toggle = (next: boolean) => {
-    if (next) {
-      setCoinsEnabled(companyId, true);
-      showToast('success', 'Moedas ligadas. Os clientes voltam a ganhar e resgatar.');
-    } else setConfirmingOff(true);
+    if (next) setEnabled(true, 'Moedas ligadas. Os clientes voltam a ganhar e resgatar.');
+    else setConfirmingOff(true);
   };
 
   const turnOff = () => {
-    setCoinsEnabled(companyId, false);
     setConfirmingOff(false);
-    showToast('success', 'Moedas desligadas.');
+    setEnabled(false, 'Moedas desligadas.');
+  };
+
+  const saveSettings = async (next: CoinSettings): Promise<string | null> => {
+    try {
+      await save.mutateAsync(coinSettingsPayload(next));
+      return null;
+    } catch (error) {
+      return error instanceof ApiError ? error.message : 'Não deu para salvar agora. Tente de novo.';
+    }
   };
 
   return (
@@ -57,7 +97,8 @@ export default function CoinsScreen() {
           <CoinSettingsForm
             key={companyId}
             settings={settings}
-            onSave={saveCoinSettings}
+            onSave={saveSettings}
+            saving={save.isPending}
             toolbar={<Tabs label="Seções de moedas" tabs={TABS} value={tab} onChange={setTab} />}
           />
         )
