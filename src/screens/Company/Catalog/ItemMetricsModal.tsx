@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { BarList, Button, EmptyNotice, LoadingNotice, Modal, PeriodFilter, StatTile, StatusBadge } from '../../../components';
 import { RatingTrendChart } from '../../../components/RatingTrendChart';
-import type { ApiAverages, ApiTagCount } from '../../../api';
+import type { ApiTagCount } from '../../../api';
 import { useItemMetrics } from '../../../queries/catalog';
 import { CATEGORY_LABEL, CHARACTERISTICS, CHARACTERISTIC_LABEL, PRODUCT_KIND_LABEL, type CatalogItem } from '../../../types';
 import { formatLongDay, formatRating, plural } from '../../../utils/format';
-import { presetRange, todayInPanel, type Averages, type DayRange, type PeriodKey } from '../../../utils/overview';
+import { averagesFromApi, presetRange, todayInPanel, type DayRange, type PeriodKey } from '../../../utils/overview';
 
 type Props = {
   item: CatalogItem | null;
@@ -13,16 +13,6 @@ type Props = {
 };
 
 const INVALID_RANGE = 'A data final precisa ser igual ou depois da inicial.';
-
-function averagesFromApi(averages: ApiAverages): Averages {
-  return {
-    overall: averages.overall ?? 0,
-    entrega: averages.delivery ?? 0,
-    qualidade: averages.quality ?? 0,
-    conformidade: averages.conformity ?? 0,
-    custoBeneficio: averages.value ?? 0,
-  };
-}
 
 function KeywordList({ title, entries, max, emptyText }: { title: string; entries: ApiTagCount[]; max: number; emptyText: string }) {
   return (
