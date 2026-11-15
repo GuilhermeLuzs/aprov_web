@@ -126,7 +126,7 @@ export type IntegrationSettings = {
   webhookUrl: string;
 };
 
-export type CouponCode = { code: string; deliveredAt?: string };
+export type CouponCode = { id?: number; code: string; deliveredAt?: string };
 
 export type CouponOffer = {
   id: string;
