@@ -46,3 +46,12 @@ export {
   type ApiRewardTopic,
   type CoinSettingsPayload,
 } from './coins';
+export {
+  apiAddCouponCodes,
+  apiCreateCoupon,
+  apiPanelCoupons,
+  apiRemoveCouponCode,
+  type ApiCoupon,
+  type ApiCouponCode,
+  type NewCoupon,
+} from './coupons';

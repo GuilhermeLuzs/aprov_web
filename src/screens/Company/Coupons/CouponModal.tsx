@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, TextAreaField, TextField } from '../../../components';
-import { mockToday } from '../../../mocks';
-import { addCouponCodes, addCouponOffer } from '../../../store/coupons';
+import { addCouponCodes, addCouponOffer, failureMessage } from '../../../store/coupons';
+import { todayInPanel } from '../../../utils/overview';
 import type { CouponOffer } from '../../../types';
 import { COUPON_TITLE_MAX, parseCodes } from '../../../utils/coupons';
 import { plural } from '../../../utils/format';
@@ -10,7 +10,6 @@ import { showToast } from '../../../store/toasts';
 const CODES_MAX_TEXT = 20000;
 
 type Props = {
-  companyId: string;
   coinName: string;
   offer: CouponOffer | null;
   takenCodes: string[];
@@ -19,7 +18,7 @@ type Props = {
 
 type Errors = Partial<Record<'title' | 'coinCost' | 'validUntil' | 'codes', string>>;
 
-export function CouponModal({ companyId, coinName, offer, takenCodes, onClose }: Props) {
+export function CouponModal({ coinName, offer, takenCodes, onClose }: Props) {
   const [title, setTitle] = useState('');
   const [coinCost, setCoinCost] = useState('');
   const [validUntil, setValidUntil] = useState('');
@@ -29,14 +28,16 @@ export function CouponModal({ companyId, coinName, offer, takenCodes, onClose }:
   const parsed = parseCodes(codesText, takenCodes);
   const skipped = [...parsed.repeated, ...parsed.tooLong];
 
-  const save = () => {
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
     const found: Errors = {};
     if (!offer) {
       if (!title.trim()) found.title = 'Diga qual é o desconto.';
       const cost = Number(coinCost);
       if (!Number.isInteger(cost) || cost < 1) found.coinCost = 'Use um número inteiro maior que zero.';
       if (!validUntil) found.validUntil = 'Informe até quando o cupom vale.';
-      else if (validUntil < mockToday) found.validUntil = 'A validade precisa ser hoje ou depois.';
+      else if (validUntil < todayInPanel()) found.validUntil = 'A validade precisa ser hoje ou depois.';
     }
     if (parsed.codes.length === 0) found.codes = 'Cole pelo menos um código novo.';
     setErrors(found);
@@ -49,23 +50,24 @@ export function CouponModal({ companyId, coinName, offer, takenCodes, onClose }:
     }
     const added = plural(parsed.codes.length, 'código', 'códigos');
     const ignored = skipped.length > 0 ? ` ${plural(skipped.length, 'ignorado', 'ignorados')}.` : '';
-    if (offer) {
-      addCouponCodes(offer.id, parsed.codes);
-      showToast(
-        'success',
-        `${plural(parsed.codes.length, 'código adicionado', 'códigos adicionados')} a "${offer.title}".${ignored}`,
-      );
-    } else {
-      addCouponOffer({
-        companyId,
-        title: title.trim(),
-        coinCost: Number(coinCost),
-        validUntil,
-        codes: parsed.codes.map((code) => ({ code })),
-      });
-      showToast('success', `Cupom "${title.trim()}" criado com ${added}.${ignored}`);
+    setSaving(true);
+    try {
+      if (offer) {
+        await addCouponCodes(offer.id, parsed.codes);
+        showToast(
+          'success',
+          `${plural(parsed.codes.length, 'código adicionado', 'códigos adicionados')} a "${offer.title}".${ignored}`,
+        );
+      } else {
+        await addCouponOffer({ title: title.trim(), coinCost: Number(coinCost), validUntil, codes: parsed.codes });
+        showToast('success', `Cupom "${title.trim()}" criado com ${added}.${ignored}`);
+      }
+      onClose();
+    } catch (error) {
+      showToast('error', failureMessage(error, 'Não deu para salvar agora. Tente de novo.'));
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
@@ -76,7 +78,7 @@ export function CouponModal({ companyId, coinName, offer, takenCodes, onClose }:
       footer={
         <>
           <Button label="Cancelar" variant="text" onClick={onClose} />
-          <Button label={offer ? 'Adicionar códigos' : 'Criar cupom'} onClick={save} />
+          <Button label={saving ? 'Salvando...' : offer ? 'Adicionar códigos' : 'Criar cupom'} onClick={save} disabled={saving} />
         </>
       }
     >

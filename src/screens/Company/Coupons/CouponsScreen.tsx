@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Gift, ListPlus, Plus, ShoppingCart, Smartphone, Store, TriangleAlert, type LucideIcon } from 'lucide-react';
 import { Button, ChoiceGroup, EmptyNotice, PageSizeSelect, Pagination } from '../../../components';
-import { coinSettingsOrDefault, useCoinSettings } from '../../../store/coins';
+import { useCoinSettingsQuery } from '../../../queries/coins';
 import { useCouponOffers } from '../../../store/coupons';
 import { setCouponSource, useIntegrationSettings } from '../../../store/integrations';
 import { useCurrentAccount } from '../../../store/session';
@@ -102,15 +102,15 @@ function OfferCard({ offer, coinName, onAddCodes, onViewCodes }: OfferCardProps)
 export default function CouponsScreen() {
   const account = useCurrentAccount();
   const companyId = account?.companyId ?? '';
-  const coin = coinSettingsOrDefault(companyId, useCoinSettings(companyId));
-  const offers = useCouponOffers().filter((o) => o.companyId === companyId);
+  const coin = useCoinSettingsQuery().data;
+  const offers = useCouponOffers().data ?? [];
   const [modal, setModal] = useState<ModalState>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
   const [viewingId, setViewingId] = useState<string | null>(null);
   const closeCodes = useCallback(() => setViewingId(null), []);
   const closeModal = useCallback(() => setModal(null), []);
-  const coinName = coin.name || 'moedas';
+  const coinName = coin?.name || 'moedas';
   const viewingOffer = offers.find((o) => o.id === viewingId);
   const source = useIntegrationSettings(companyId).couponSource;
   const pageCount = pageCountOf(offers.length, pageSize);
@@ -210,7 +210,6 @@ export default function CouponsScreen() {
 
       {modal ? (
         <CouponModal
-          companyId={companyId}
           coinName={coinName}
           offer={modal.offer}
           takenCodes={offers.flatMap((o) => o.codes.map((c) => c.code))}

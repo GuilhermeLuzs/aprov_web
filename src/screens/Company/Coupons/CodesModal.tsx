@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Modal, PageSizeSelect, Pagination, Tabs } from '../../../components';
-import { removeCouponCode } from '../../../store/coupons';
+import { failureMessage, removeCouponCode } from '../../../store/coupons';
 import { icon } from '../../../theme';
 import type { CouponOffer } from '../../../types';
 import { formatLongDay, plural } from '../../../utils/format';
@@ -34,10 +34,14 @@ export function CodesModal({ offer, onClose }: Props) {
     setPage(1);
   };
 
-  const confirmRemoval = (code: string) => {
-    removeCouponCode(offer.id, code);
-    showToast('success', `Código ${code} removido.`);
+  const confirmRemoval = async (code: string) => {
     setConfirmingCode(null);
+    try {
+      await removeCouponCode(offer, code);
+      showToast('success', `Código ${code} removido.`);
+    } catch (error) {
+      showToast('error', failureMessage(error, 'Não deu para remover agora. Tente de novo.'));
+    }
   };
 
   const changePageSize = (size: number) => {
