@@ -5,7 +5,6 @@ export const testCompanyAccount: Account = {
   role: 'empresa',
   name: 'Cozinha da Vó Marlene',
   email: 'empresa@aprov.com',
-  password: 'aprov123',
   companyId: 'c2',
 };
 
@@ -14,7 +13,6 @@ export const testMasterAccount: Account = {
   role: 'master',
   name: 'Administração APROV',
   email: 'master@aprov.com',
-  password: 'aprov123',
 };
 
 export const accounts: Account[] = [testCompanyAccount, testMasterAccount];

@@ -24,7 +24,7 @@ export function ProfileDataForm({ account }: { account: Account }) {
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
   const changed = name.trim() !== account.name || email.trim() !== account.email;
 
-  const submit = (event: SubmitEvent) => {
+  const submit = async (event: SubmitEvent) => {
     event.preventDefault();
     const found: typeof errors = {};
     if (name.trim().length < MIN_NAME_LENGTH) found.name = 'Informe o nome, com pelo menos 3 letras.';
@@ -33,16 +33,16 @@ export function ProfileDataForm({ account }: { account: Account }) {
       setErrors(found);
       return;
     }
-    const result = updateProfile(account.id, { name, email });
+    const result = await updateProfile({ name, email });
     if (!result.ok) {
-      setErrors({ email: 'Este e-mail já é usado por outra conta.' });
+      setErrors({ name: result.errors.name, email: result.errors.email ?? (result.errors.name ? undefined : result.message) });
       return;
     }
     showToast('success', 'Dados do perfil atualizados.');
   };
 
   return (
-    <form onSubmit={submit} noValidate className={CARD}>
+    <form onSubmit={(event) => void submit(event)} noValidate className={CARD}>
       <CardHeading title="Dados do perfil" description="Seu nome aparece no histórico das ações que você faz no painel." />
       <TextField
         label="Nome"
@@ -77,7 +77,7 @@ export function ProfileDataForm({ account }: { account: Account }) {
 
 type PasswordErrors = { current?: string; next?: string; confirmation?: string };
 
-export function PasswordForm({ account }: { account: Account }) {
+export function PasswordForm() {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -86,7 +86,7 @@ export function PasswordForm({ account }: { account: Account }) {
 
   const clearError = (key: keyof PasswordErrors) => setErrors((found) => ({ ...found, [key]: undefined }));
 
-  const submit = (event: SubmitEvent) => {
+  const submit = async (event: SubmitEvent) => {
     event.preventDefault();
     const found: PasswordErrors = {};
     if (!isValidPassword(next)) found.next = 'A senha precisa ter 8 ou mais caracteres, com letra e número.';
@@ -96,8 +96,9 @@ export function PasswordForm({ account }: { account: Account }) {
       setErrors(found);
       return;
     }
-    if (!changePassword(account.id, current, next)) {
-      setErrors({ current: 'Senha atual incorreta.' });
+    const result = await changePassword(current, next);
+    if (!result.ok) {
+      setErrors({ current: result.errors.currentPassword, next: result.errors.password ?? (result.errors.currentPassword ? undefined : result.message) });
       return;
     }
     setCurrent('');
@@ -107,7 +108,7 @@ export function PasswordForm({ account }: { account: Account }) {
   };
 
   return (
-    <form onSubmit={submit} noValidate className={CARD}>
+    <form onSubmit={(event) => void submit(event)} noValidate className={CARD}>
       <CardHeading title="Senha" description="Para trocar, confirme a senha atual." />
       <TextField
         label="Senha atual"

@@ -2,17 +2,19 @@ import { useState, type SubmitEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Check } from 'lucide-react';
 import { Button, FormCard, SelectField, Stepper, TextField } from '../../../components';
+import { lookupZipCode } from '../../../api';
 import { registerCompany } from '../../../store/session';
 import { icon } from '../../../theme';
 import { CATEGORY_LABEL, COMPANY_SIZE_LABEL, MODALITY_LABEL, type Category, type CompanySize, type Modality } from '../../../types';
-import { formatCnpj, formatCpf, formatPhone, passwordRules } from '../../../utils/validation';
+import { formatCep, formatCnpj, formatCpf, formatPhone, isValidCep, onlyDigits, passwordRules } from '../../../utils/validation';
 import {
   CNPJ_TAKEN,
-  EMAIL_TAKEN,
   STEP_LABELS,
   emptyForm,
+  formErrorsFromServer,
   stepErrors,
-  toRegistration,
+  stepOfErrors,
+  toPayload,
   type FormErrors,
   type SignUpForm,
 } from './form';
@@ -36,6 +38,9 @@ export default function CompanySignUpScreen() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<SignUpForm>(emptyForm);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [sending, setSending] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
 
   const update = (patch: Partial<SignUpForm>) => {
     setForm((current) => ({ ...current, ...patch }));
@@ -46,14 +51,25 @@ export default function CompanySignUpScreen() {
     });
   };
 
-  const goTo = (next: number) => {
+  const goTo = (next: number, nextErrors: FormErrors = {}) => {
     setStep(next);
-    setErrors({});
+    setErrors(nextErrors);
     window.scrollTo({ top: 0 });
   };
 
-  const submit = (event: SubmitEvent) => {
+  const changeZipCode = async (value: string) => {
+    const zipCode = formatCep(value);
+    update({ zipCode });
+    if (!isValidCep(zipCode)) return;
+    setLookingUp(true);
+    const address = await lookupZipCode(onlyDigits(zipCode));
+    setLookingUp(false);
+    if (address) update(address);
+  };
+
+  const submit = async (event: SubmitEvent) => {
     event.preventDefault();
+    setSubmitError(null);
     const found = stepErrors(step, form);
     if (Object.keys(found).length > 0) {
       setErrors(found);
@@ -63,15 +79,21 @@ export default function CompanySignUpScreen() {
       goTo(step + 1);
       return;
     }
-    const registration = toRegistration(form);
-    if (!registration) return;
-    const result = registerCompany(registration);
+    const payload = toPayload(form);
+    if (!payload) return;
+    setSending(true);
+    const result = await registerCompany(payload);
+    setSending(false);
     if (!result.ok) {
-      goTo(result.reason === 'cnpj' ? 1 : 2);
-      setErrors(result.reason === 'cnpj' ? { cnpj: CNPJ_TAKEN } : { responsibleEmail: EMAIL_TAKEN });
+      const serverErrors = formErrorsFromServer(result.errors);
+      if (Object.keys(serverErrors).length > 0) {
+        goTo(stepOfErrors(serverErrors), serverErrors);
+        return;
+      }
+      setSubmitError(result.message);
       return;
     }
-    navigate('/login', { state: { registeredEmail: registration.responsible.email } });
+    navigate('/login', { state: { registeredEmail: payload.responsibleEmail } });
   };
 
   const rules = passwordRules(form.password);
@@ -84,7 +106,7 @@ export default function CompanySignUpScreen() {
     >
       <Stepper current={step} labels={STEP_LABELS} />
 
-      <form onSubmit={submit} className="flex flex-col gap-lg" noValidate>
+      <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-lg" noValidate>
         {step === 1 ? (
           <div className="grid gap-x-lg gap-y-md md:grid-cols-2 lg:grid-cols-4">
             <TextField
@@ -113,16 +135,60 @@ export default function CompanySignUpScreen() {
               onChange={(value) => update({ phone: formatPhone(value) })}
               error={errors.phone}
             />
+            <TextField
+              label="CEP"
+              inputMode="numeric"
+              autoComplete="postal-code"
+              placeholder="00000-000"
+              value={form.zipCode}
+              onChange={(value) => void changeZipCode(value)}
+              hint={lookingUp ? 'Buscando o endereço...' : 'Preenche rua, bairro e cidade.'}
+              error={errors.zipCode}
+            />
             <div className="lg:col-span-2">
               <TextField
-                label="Endereço"
-                autoComplete="street-address"
-                placeholder="Rua, número, cidade e estado"
-                value={form.address}
-                onChange={(value) => update({ address: value })}
-                error={errors.address}
+                label="Rua"
+                autoComplete="address-line1"
+                value={form.street}
+                onChange={(value) => update({ street: value })}
+                error={errors.street}
               />
             </div>
+            <TextField
+              label="Número"
+              value={form.number}
+              onChange={(value) => update({ number: value })}
+              error={errors.number}
+            />
+            <TextField
+              label="Complemento"
+              autoComplete="address-line2"
+              placeholder="Opcional"
+              value={form.complement}
+              onChange={(value) => update({ complement: value })}
+              error={errors.complement}
+            />
+            <TextField
+              label="Bairro"
+              value={form.district}
+              onChange={(value) => update({ district: value })}
+              error={errors.district}
+            />
+            <TextField
+              label="Cidade"
+              autoComplete="address-level2"
+              value={form.city}
+              onChange={(value) => update({ city: value })}
+              error={errors.city}
+            />
+            <TextField
+              label="UF"
+              autoComplete="address-level1"
+              placeholder="SP"
+              value={form.state}
+              onChange={(value) => update({ state: value.toUpperCase().slice(0, 2) })}
+              error={errors.state}
+            />
             <div className="lg:col-span-2">
               <TextField
                 label="E-mail da empresa"
@@ -260,8 +326,13 @@ export default function CompanySignUpScreen() {
           ) : (
             <span />
           )}
-          <Button label={step < STEP_LABELS.length ? 'Continuar' : 'Concluir cadastro'} type="submit" />
+          <Button
+            label={step < STEP_LABELS.length ? 'Continuar' : sending ? 'Cadastrando...' : 'Concluir cadastro'}
+            type="submit"
+            disabled={sending}
+          />
         </div>
+        {submitError ? <p className="text-center text-caption font-semibold text-disagree">{submitError}</p> : null}
       </form>
 
     </FormCard>
