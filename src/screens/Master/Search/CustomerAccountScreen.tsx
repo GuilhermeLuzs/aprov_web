@@ -2,16 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
 import { AccountStatusBadge, CompanyAvatar, RatingValue, StatTile } from '../../../components';
-import { customers, mockToday, reviews } from '../../../mocks';
-import { useProducts } from '../../../store/catalog';
-import { markViewed, useAccessEvents } from '../../../store/moderation';
-import { useQueues } from '../../../store/queues';
-import { useCompanies } from '../../../store/session';
+import { numericId, useCustomerAccount } from '../../../queries/accounts';
+import { markViewed } from '../../../store/moderation';
 import { icon } from '../../../theme';
 import type { AccountRef } from '../../../types';
 import { formatInt, formatLongDay, formatRating, formatRelativeDay, maskCpf, plural } from '../../../utils/format';
-import { eventsOf, statusFrom } from '../../../utils/moderation';
-import { averagesOf, reviewAverage } from '../../../utils/overview';
+import { todayInPanel } from '../../../utils/overview';
 import { AccessPanel } from './AccessPanel';
 import { AccessHistory, AccountNotFound, BackToSearch, InfoCard, SectionCard } from './AccountParts';
 
@@ -46,27 +42,22 @@ function CpfValue({ cpf }: { cpf: string }) {
 
 export default function CustomerAccountScreen() {
   const { id } = useParams();
-  const customer = customers.find((c) => c.id === id);
-  const allEvents = useAccessEvents();
-  const products = useProducts();
-  const companies = useCompanies();
-  const removedIds = new Set(
-    useQueues()
-      .resolutions.filter((r) => r.target.kind === 'review' && r.decision === 'removed')
-      .map((r) => r.target.id),
-  );
+  const [mockToday] = useState(todayInPanel);
+  const account = useCustomerAccount(numericId(id)).data;
+  const customer = account?.customer;
 
   useEffect(() => {
-    if (customer) markViewed({ kind: 'customer', id: customer.id });
+    if (customer) {
+      markViewed({ ref: { kind: 'customer', id: customer.id }, name: customer.name, subtitle: `@${customer.username}`, status: customer.status });
+    }
   }, [customer]);
 
-  if (!customer) return <AccountNotFound />;
+  if (!account || !customer) return <AccountNotFound />;
 
   const ref: AccountRef = { kind: 'customer', id: customer.id };
-  const events = eventsOf(allEvents, ref);
-  const own = reviews.filter((r) => r.authorId === customer.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const agreements = own.reduce((sum, r) => sum + r.agreements, 0);
-  const disagreements = own.reduce((sum, r) => sum + r.disagreements, 0);
+  const events = account.events.map((event) => ({ ...event, account: ref }));
+  const own = account.reviews.recent;
+  const { agreements, disagreements } = account.reviews;
   const lastReviewDay = own[0]?.createdAt.slice(0, 10);
 
   return (
@@ -78,7 +69,7 @@ export default function CustomerAccountScreen() {
         <div className="flex min-w-zero flex-1 flex-col gap-xs">
           <div className="flex flex-wrap items-center gap-md">
             <h1 className="sensitive font-display font-bold text-display text-ink">{customer.name}</h1>
-            <AccountStatusBadge status={statusFrom(events[0])} />
+            <AccountStatusBadge status={customer.status} />
           </div>
           <p className="text-ink-muted">
             <span className="sensitive">@{customer.username}</span> · Cliente desde {formatLongDay(customer.createdAt.slice(0, 10))}
@@ -100,8 +91,7 @@ export default function CustomerAccountScreen() {
                 value: `${formatLongDay(customer.birthDate)} (${ageOn(customer.birthDate, mockToday)} anos)`,
                 sensitive: true,
               },
-              { label: 'Cidade', value: `${customer.city}, ${customer.uf}` },
-              { label: 'Último acesso', value: formatRelativeDay(customer.lastActiveAt.slice(0, 10), mockToday) },
+                            { label: 'Último acesso', value: formatRelativeDay(customer.lastActiveAt.slice(0, 10), mockToday) },
             ]}
           />
         </div>
@@ -110,12 +100,12 @@ export default function CustomerAccountScreen() {
           <div className="grid gap-lg sm:grid-cols-2 xl:grid-cols-4">
             <StatTile
               label="Avaliações publicadas"
-              value={formatInt(own.length)}
+              value={formatInt(account.reviews.count)}
               detail={lastReviewDay ? `a última ${formatRelativeDay(lastReviewDay, mockToday)}` : 'nenhuma ainda'}
             />
             <StatTile
               label="Nota média dada"
-              value={own.length > 0 ? formatRating(averagesOf(own).overall) : '–'}
+              value={account.reviews.average !== null ? formatRating(account.reviews.average) : '–'}
               detail="de 5, em todas as avaliações"
             />
             <StatTile
@@ -132,23 +122,21 @@ export default function CustomerAccountScreen() {
             ) : (
               <ul className="flex flex-col">
                 {own.slice(0, RECENT_REVIEWS).map((review) => {
-                  const product = products.find((p) => p.id === review.productId);
-                  const company = companies.find((c) => c.id === review.companyId);
                   return (
                     <li key={review.id} className="flex items-start justify-between gap-md border-b border-border py-sm last:border-b-0">
                       <div className="flex min-w-zero flex-col gap-xs">
                         <span className="sensitive font-semibold text-ink">{review.title}</span>
                         <span className="sensitive text-caption text-ink-muted">
-                          {product?.title ?? 'Item removido'} · {company?.name ?? 'Empresa removida'}
+                          {review.companyName || 'Empresa removida'}
                         </span>
                         <span className="flex flex-wrap items-center gap-sm text-caption text-ink-muted">
                           {formatRelativeDay(review.createdAt.slice(0, 10), mockToday)}
-                          {removedIds.has(review.id) ? (
+                          {review.removed ? (
                             <span className="rounded-pill bg-disagree-dim px-sm font-semibold text-disagree">Removida por denúncia</span>
                           ) : null}
                         </span>
                       </div>
-                      <RatingValue average={reviewAverage(review)} />
+                      <RatingValue average={review.rating} />
                     </li>
                   );
                 })}

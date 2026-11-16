@@ -5,7 +5,7 @@ import type { Assignment, CaseResolution, TicketStatus } from '../types';
 
 const QUEUES_KEY = ['master', 'queues'] as const;
 
-const EMPTY: ApiQueues = { reports: [], resolutions: [], assignments: [], tickets: [], targets: {}, admins: {} };
+const EMPTY: ApiQueues = { reports: [], resolutions: [], assignments: [], tickets: [], targets: {}, admins: {}, accessEvents: [] };
 
 export function failureMessage(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;

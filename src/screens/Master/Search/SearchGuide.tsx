@@ -1,11 +1,8 @@
 import { Link } from 'react-router';
 import { AccountStatusBadge, CompanyAvatar } from '../../../components';
-import { customers } from '../../../mocks';
-import { useAccessEvents, useRecentlyViewed } from '../../../store/moderation';
-import { useCompanies } from '../../../store/session';
+import { useRecentlyViewed } from '../../../store/moderation';
 import type { AccountKind } from '../../../types';
 import { ACCOUNT_PATH } from '../../../utils/accountSearch';
-import { eventsOf, statusFrom } from '../../../utils/moderation';
 
 const EXAMPLES: Record<AccountKind, { example: string; meaning: string }[]> = {
   customer: [
@@ -24,18 +21,7 @@ const EXAMPLES: Record<AccountKind, { example: string; meaning: string }[]> = {
 };
 
 function RecentlyViewed() {
-  const recent = useRecentlyViewed();
-  const companies = useCompanies();
-  const events = useAccessEvents();
-
-  const items = recent.flatMap((ref) => {
-    const account =
-      ref.kind === 'customer' ? customers.find((c) => c.id === ref.id) : companies.find((c) => c.id === ref.id);
-    if (!account) return [];
-    const subtitle = 'username' in account ? `@${account.username}` : `CNPJ ${account.cnpj}`;
-    const imageUrl = 'logoUrl' in account ? account.logoUrl : undefined;
-    return [{ ref, name: account.name, subtitle, imageUrl, status: statusFrom(eventsOf(events, ref)[0]) }];
-  });
+  const items = useRecentlyViewed();
 
   return (
     <section className="flex flex-col gap-md rounded-card border border-border bg-surface p-lg">

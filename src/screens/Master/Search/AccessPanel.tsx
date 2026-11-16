@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Button, Modal, SelectField, Switch, TextAreaField } from '../../../components';
+import { ApiError } from '../../../api';
 import { recordAccessChange } from '../../../store/moderation';
-import { useAccountName, useCurrentAccount } from '../../../store/session';
+import { useAdminName } from '../Queues/useTargetInfo';
 import { showToast } from '../../../store/toasts';
 import {
   ACCESS_REASON_LABEL,
@@ -24,13 +25,13 @@ const SUSPEND_EFFECT = {
 type ModalProps = { account: AccountRef; name: string; suspending: boolean; onClose: () => void };
 
 function AccessModal({ account, name, suspending, onClose }: ModalProps) {
-  const admin = useCurrentAccount();
+  const [saving, setSaving] = useState(false);
   const [reason, setReason] = useState('');
   const [note, setNote] = useState('');
   const [errors, setErrors] = useState<{ reason?: string; note?: string }>({});
   const reasons = suspending ? SUSPEND_REASONS[account.kind] : REACTIVATE_REASONS;
 
-  const confirm = () => {
+  const confirm = async () => {
     const found: typeof errors = {};
     if (!reason) found.reason = 'Escolha o motivo.';
     if (note.trim().length < NOTE_MIN) found.note = `Descreva o que aconteceu em pelo menos ${NOTE_MIN} caracteres.`;
@@ -38,15 +39,16 @@ function AccessModal({ account, name, suspending, onClose }: ModalProps) {
     setErrors(found);
     if (found.reason || found.note) return;
 
-    recordAccessChange({
-      account,
-      action: suspending ? 'suspend' : 'reactivate',
-      reason: reason as AccessReason,
-      note: note.trim(),
-      byId: admin?.id ?? '',
-    });
-    showToast('success', suspending ? `Acesso de ${name} suspenso.` : `Acesso de ${name} reativado.`);
-    onClose();
+    setSaving(true);
+    try {
+      await recordAccessChange({ account, action: suspending ? 'suspend' : 'reactivate', reason: reason as AccessReason, note: note.trim() });
+      showToast('success', suspending ? `Acesso de ${name} suspenso.` : `Acesso de ${name} reativado.`);
+      onClose();
+    } catch (error) {
+      showToast('error', error instanceof ApiError ? error.message : 'Não deu para mudar o acesso agora. Tente de novo.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -58,7 +60,7 @@ function AccessModal({ account, name, suspending, onClose }: ModalProps) {
       footer={
         <>
           <Button label="Cancelar" variant="text" onClick={onClose} />
-          <Button label={suspending ? 'Suspender acesso' : 'Reativar acesso'} onClick={confirm} />
+          <Button label={suspending ? 'Suspender acesso' : 'Reativar acesso'} onClick={() => void confirm()} disabled={saving} />
         </>
       }
     >
@@ -98,7 +100,7 @@ type Props = { account: AccountRef; name: string; latest: AccessEvent | undefine
 export function AccessPanel({ account, name, latest }: Props) {
   const [open, setOpen] = useState(false);
   const close = useCallback(() => setOpen(false), []);
-  const nameOf = useAccountName();
+  const nameOf = useAdminName();
   const suspended = latest?.action === 'suspend';
 
   return (
