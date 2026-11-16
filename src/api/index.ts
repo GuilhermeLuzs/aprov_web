@@ -57,3 +57,15 @@ export {
 } from './coupons';
 export { apiPanelOverview, type ApiOverview, type ApiRankedItem } from './overview';
 export { apiAssign, apiMasterQueues, apiReplyTicket, apiResolveCase, apiTicketStatus, type ApiQueues, type ApiTargetInfo } from './queues';
+export {
+  apiChangeAccess,
+  apiCompanyAccount,
+  apiCustomerAccount,
+  apiSearchAccounts,
+  type AccountCriteria,
+  type ApiAccessEvent,
+  type ApiCompanyAccount,
+  type ApiCustomerAccount,
+  type ApiMasterCompany,
+  type ApiMasterCustomer,
+} from './accounts';

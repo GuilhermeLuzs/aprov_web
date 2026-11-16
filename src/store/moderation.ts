@@ -1,11 +1,14 @@
 import { useSyncExternalStore } from 'react';
-import { accessEvents as seeded, mockNow } from '../mocks';
-import type { AccessEvent, AccountRef } from '../types';
+import { apiChangeAccess } from '../api';
+import { queryClient } from '../queries/client';
+import { ACCOUNTS_KEY, numericId } from '../queries/accounts';
+import type { AccessAction, AccountRef, AccountStatus } from '../types';
 
 const RECENT_LIMIT = 5;
 
-let events: AccessEvent[] = seeded;
-let recent: AccountRef[] = [];
+export type RecentAccount = { ref: AccountRef; name: string; subtitle: string; imageUrl?: string; status: AccountStatus };
+
+let recent: RecentAccount[] = [];
 const listeners = new Set<() => void>();
 
 function subscribe(listener: () => void) {
@@ -17,21 +20,23 @@ function emit() {
   listeners.forEach((listener) => listener());
 }
 
-export function recordAccessChange(change: Omit<AccessEvent, 'id' | 'createdAt'>) {
-  events = [...events, { ...change, id: `ae${Date.now()}`, createdAt: mockNow() }];
+export async function recordAccessChange(change: { account: AccountRef; action: AccessAction; reason: string; note: string }): Promise<void> {
+  await apiChangeAccess({
+    kind: change.account.kind,
+    id: numericId(change.account.id) ?? change.account.id,
+    action: change.action,
+    reason: change.reason,
+    note: change.note,
+  });
+  await queryClient.invalidateQueries({ queryKey: ACCOUNTS_KEY });
+}
+
+export function markViewed(account: RecentAccount) {
+  const same = (entry: RecentAccount) => entry.ref.kind === account.ref.kind && entry.ref.id === account.ref.id;
+  recent = [account, ...recent.filter((entry) => !same(entry))].slice(0, RECENT_LIMIT);
   emit();
 }
 
-export function markViewed(account: AccountRef) {
-  if (recent[0]?.kind === account.kind && recent[0]?.id === account.id) return;
-  recent = [account, ...recent.filter((r) => r.kind !== account.kind || r.id !== account.id)].slice(0, RECENT_LIMIT);
-  emit();
-}
-
-export function useAccessEvents(): AccessEvent[] {
-  return useSyncExternalStore(subscribe, () => events);
-}
-
-export function useRecentlyViewed(): AccountRef[] {
+export function useRecentlyViewed(): RecentAccount[] {
   return useSyncExternalStore(subscribe, () => recent);
 }

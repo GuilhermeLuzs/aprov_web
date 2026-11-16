@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import { AccountStatusBadge, CompanyAvatar, EmptyNotice, PageSizeSelect, Pagination } from '../../../components';
-import { customers, mockToday } from '../../../mocks';
-import { useAccessEvents } from '../../../store/moderation';
-import { useCompanies } from '../../../store/session';
+import type { ApiMasterCompany, ApiMasterCustomer } from '../../../api';
+import { useAccountSearch } from '../../../queries/accounts';
+import { companyFromApi } from '../../../store/session';
 import { icon } from '../../../theme';
 import { CATEGORY_LABEL, type AccountKind, type AccountStatus, type Company, type Customer } from '../../../types';
-import { ACCOUNT_PATH, RESULT_LIMIT, searchCompanies, searchCustomers, ufOf, type SearchCriteria } from '../../../utils/accountSearch';
+import { ACCOUNT_PATH, RESULT_LIMIT, ufOf, type SearchCriteria } from '../../../utils/accountSearch';
 import { formatRelativeDay, plural } from '../../../utils/format';
-import { latestEvents, statusFrom } from '../../../utils/moderation';
+import { todayInPanel } from '../../../utils/overview';
 import { pageCountOf, pageSlice } from '../../../utils/pagination';
 
 const PAGE_SIZES = [10, 25, 50] as const;
@@ -26,7 +26,7 @@ function customerRow(customer: Customer, status: AccountStatus): Row {
     id: customer.id,
     name: customer.name,
     subtitle: `@${customer.username} · ${customer.email}`,
-    columns: [`${customer.city}, ${customer.uf}`, formatRelativeDay(customer.lastActiveAt.slice(0, 10), mockToday)],
+    columns: [customer.city ? `${customer.city}, ${customer.uf}` : '–', formatRelativeDay(customer.lastActiveAt.slice(0, 10), todayInPanel())],
     status,
   };
 }
@@ -125,16 +125,14 @@ function ResultList({ kind, rows }: { kind: AccountKind; rows: Row[] }) {
 type Props = { kind: AccountKind; criteria: SearchCriteria };
 
 export function SearchResults({ kind, criteria }: Props) {
-  const companies = useCompanies();
-  const latest = latestEvents(useAccessEvents(), kind);
-  const statusOf = (id: string) => statusFrom(latest.get(id));
+  const results = useAccountSearch(kind, criteria).data ?? [];
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
 
   const rows =
     kind === 'customer'
-      ? searchCustomers(customers, criteria, statusOf, mockToday).map((c) => customerRow(c, statusOf(c.id)))
-      : searchCompanies(companies, criteria, statusOf).map((c) => companyRow(c, statusOf(c.id)));
+      ? (results as ApiMasterCustomer[]).map((c) => customerRow(c, c.status))
+      : (results as ApiMasterCompany[]).map((c) => companyRow({ ...companyFromApi({ ...c, id: 0 }), id: c.id }, c.status));
 
   if (rows.length === 0) {
     return (

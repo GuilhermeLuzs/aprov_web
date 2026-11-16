@@ -1,4 +1,4 @@
-import type { AccountRef, Assignment, CaseResolution, Report, ReportTarget, Ticket, TicketStatus } from '../types';
+import type { AccessEvent, AccountRef, Assignment, CaseResolution, Report, ReportTarget, Ticket, TicketStatus } from '../types';
 import { apiRequest } from './client';
 
 export type ApiTargetInfo = {
@@ -17,6 +17,7 @@ export type ApiQueues = {
   tickets: Ticket[];
   targets: Record<string, ApiTargetInfo>;
   admins: Record<string, string>;
+  accessEvents: (AccessEvent & { accountName: string })[];
 };
 
 export async function apiMasterQueues(): Promise<ApiQueues> {

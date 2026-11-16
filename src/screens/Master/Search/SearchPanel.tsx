@@ -1,14 +1,12 @@
 import { useState, type SubmitEvent } from 'react';
 import { Button, FilterSelect, SearchField } from '../../../components';
-import { customers } from '../../../mocks';
-import { useCompanies } from '../../../store/session';
 import { CATEGORY_LABEL, COMPANY_SIZE_LABEL, type AccountKind } from '../../../types';
 import {
+  BRAZIL_UFS,
   EMPTY_CRITERIA,
   FILTER_KEYS,
   hasAnchor,
   queryKind,
-  ufOf,
   type FilterKey,
   type QueryKind,
   type SearchCriteria,
@@ -72,7 +70,6 @@ type Props = {
 };
 
 export function SearchPanel({ kind, initial, onSearch }: Props) {
-  const companies = useCompanies();
   const [draft, setDraft] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const query = queryKind(draft.query, kind);
@@ -84,7 +81,7 @@ export function SearchPanel({ kind, initial, onSearch }: Props) {
     uf: {
       label: 'Estado',
       allLabel: 'Todos os estados',
-      options: ufOptions(kind === 'customer' ? customers.map((c) => c.uf) : companies.map(ufOf)),
+      options: ufOptions(BRAZIL_UFS),
     },
     joined: { label: 'Data de cadastro', allLabel: 'Qualquer data de cadastro', options: JOINED_OPTIONS },
     activity: { label: 'Atividade', allLabel: 'Qualquer atividade', options: ACTIVITY_OPTIONS },

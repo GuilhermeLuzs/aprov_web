@@ -48,7 +48,7 @@ function addressOf(company: ApiPanelCompany): string {
   return `${company.street}, ${company.number}${complement}, ${company.district}, ${company.city}/${company.state}`;
 }
 
-function companyFromApi(company: ApiPanelCompany): Company {
+export function companyFromApi(company: ApiPanelCompany): Company {
   return {
     id: mockCompanyId(company.id),
     cnpj: company.cnpj,

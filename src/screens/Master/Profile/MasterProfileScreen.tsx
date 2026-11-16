@@ -1,9 +1,7 @@
 import { Link } from 'react-router';
 import { CompanyAvatar, StatTile } from '../../../components';
-import { customers } from '../../../mocks';
-import { useAccessEvents } from '../../../store/moderation';
 import { useQueues } from '../../../store/queues';
-import { useCompanies, useCurrentAccount } from '../../../store/session';
+import { useCurrentAccount } from '../../../store/session';
 import { ACCESS_ACTION_LABEL, PANEL_LABEL } from '../../../types';
 import { ACCOUNT_PATH } from '../../../utils/accountSearch';
 import { formatDateTime, formatInt } from '../../../utils/format';
@@ -21,15 +19,11 @@ const DECISION_TITLE = {
 
 export default function MasterProfileScreen() {
   const account = useCurrentAccount();
-  const companies = useCompanies();
   const targetInfo = useTargetInfo();
-  const accessEvents = useAccessEvents();
-  const { resolutions, tickets } = useQueues();
+  const { resolutions, tickets, accessEvents } = useQueues();
 
   if (!account) return null;
 
-  const accountName = (kind: 'customer' | 'company', id: string) =>
-    (kind === 'customer' ? customers.find((c) => c.id === id) : companies.find((c) => c.id === id))?.name ?? 'Conta removida';
 
   const mine = accessEvents.filter((e) => e.byId === account.id);
   const decisions = resolutions.filter((r) => r.byId === account.id);
@@ -42,7 +36,7 @@ export default function MasterProfileScreen() {
       id: e.id,
       at: e.createdAt,
       title: ACCESS_ACTION_LABEL[e.action],
-      detail: accountName(e.account.kind, e.account.id),
+      detail: e.accountName,
       to: `${ACCOUNT_PATH[e.account.kind]}/${e.account.id}`,
     })),
     ...decisions.map((r) => ({
