@@ -1,16 +1,19 @@
 export { ApiError, NetworkError, apiRequest, apiUpload, onUnauthorized } from './client';
 export {
   apiChangePanelPassword,
+  apiDeactivateCompany,
   apiPanelLogin,
   apiPanelLogout,
   apiPanelMe,
   apiRegisterCompany,
+  apiUpdateCompany,
   apiUpdatePanelProfile,
   type ApiCompanySize,
   type ApiModality,
   type ApiPanelAccount,
   type ApiPanelCompany,
   type CompanyRegistrationPayload,
+  type CompanyUpdatePayload,
 } from './panel';
 export { lookupZipCode, type AddressLookup } from './address';
 export {

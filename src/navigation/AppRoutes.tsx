@@ -21,6 +21,7 @@ const AccountSearchScreen = lazy(() => import('../screens/Master/Search/AccountS
 const CustomerAccountScreen = lazy(() => import('../screens/Master/Search/CustomerAccountScreen'));
 const CompanyAccountScreen = lazy(() => import('../screens/Master/Search/CompanyAccountScreen'));
 const QueuesScreen = lazy(() => import('../screens/Master/Queues/QueuesScreen'));
+const CompanyProfileScreen = lazy(() => import('../screens/Company/Profile/CompanyProfileScreen'));
 const MasterProfileScreen = lazy(() => import('../screens/Master/Profile/MasterProfileScreen'));
 
 export function AppRoutes() {
@@ -145,6 +146,16 @@ export function AppRoutes() {
               <RequireRole role="master">
                 <Suspense fallback={null}>
                   <QueuesScreen />
+                </Suspense>
+              </RequireRole>
+            }
+          />
+          <Route
+            path="empresa/perfil"
+            element={
+              <RequireRole role="empresa">
+                <Suspense fallback={null}>
+                  <CompanyProfileScreen />
                 </Suspense>
               </RequireRole>
             }

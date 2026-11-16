@@ -80,3 +80,15 @@ export async function apiUpdatePanelProfile(profile: { name: string; email: stri
 export async function apiChangePanelPassword(currentPassword: string, password: string): Promise<void> {
   await apiRequest<null>('panel/me/password', { method: 'PUT', body: { currentPassword, password } });
 }
+
+export type CompanyUpdatePayload = Omit<CompanyRegistrationPayload, 'cnpj' | 'responsibleCpf' | 'responsibleEmail' | 'password'> & {
+  description: string;
+};
+
+export async function apiUpdateCompany(payload: CompanyUpdatePayload): Promise<ApiPanelAccount> {
+  return apiRequest<ApiPanelAccount>('panel/company', { method: 'PATCH', body: payload });
+}
+
+export async function apiDeactivateCompany(password: string): Promise<void> {
+  await apiRequest<null>('panel/deactivate', { method: 'POST', body: { password } });
+}
