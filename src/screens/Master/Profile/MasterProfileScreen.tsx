@@ -16,7 +16,7 @@ type Action = { id: string; at: string; title: string; detail: string; to: strin
 
 const DECISION_TITLE = {
   review: { removed: 'Removeu uma avaliação', kept: 'Manteve uma avaliação' },
-  item: { removed: 'Inativou um item', kept: 'Manteve um item' },
+  comment: { removed: 'Removeu um comentário', kept: 'Manteve um comentário' },
 };
 
 export default function MasterProfileScreen() {

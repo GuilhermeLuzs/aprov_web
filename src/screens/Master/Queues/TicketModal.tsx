@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { Button, Modal, TextAreaField } from '../../../components';
-import { customers } from '../../../mocks';
-import { assign, replyToTicket, setTicketStatus } from '../../../store/queues';
-import { useAccountName, useCompanies } from '../../../store/session';
+import { assign, failureMessage, replyToTicket, setTicketStatus } from '../../../store/queues';
+import { useAdminName } from './useTargetInfo';
 import { showToast } from '../../../store/toasts';
 import { TICKET_TOPIC_LABEL, type Ticket } from '../../../types';
 import { ACCOUNT_PATH } from '../../../utils/accountSearch';
@@ -17,18 +16,14 @@ const REQUESTER_KIND = { customer: 'Cliente', company: 'Empresa parceira' };
 type Props = { ticket: Ticket; assignee?: string; me: string; onClose: () => void };
 
 export function TicketModal({ ticket, assignee, me, onClose }: Props) {
-  const companies = useCompanies();
-  const nameOf = useAccountName();
+  const nameOf = useAdminName();
   const [reply, setReply] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const requester =
-    ticket.requester.kind === 'customer'
-      ? customers.find((c) => c.id === ticket.requester.id)
-      : companies.find((c) => c.id === ticket.requester.id);
+  const requester = { name: ticket.requesterName };
 
   const resolved = ticket.status === 'resolved';
 
-  const send = () => {
+  const send = async () => {
     if (reply.trim() === '') {
       setError('Escreva a resposta antes de enviar.');
       return;
@@ -37,15 +32,23 @@ export function TicketModal({ ticket, assignee, me, onClose }: Props) {
       setError(`Use no máximo ${REPLY_MAX} caracteres.`);
       return;
     }
-    replyToTicket(ticket.id, me, reply.trim(), 'waiting');
-    if (!assignee) assign('ticket', ticket.id, me);
-    setReply('');
-    showToast('success', 'Resposta enviada. O ticket aguarda o solicitante.');
+    try {
+      await replyToTicket(ticket.id, reply.trim(), 'waiting');
+      if (!assignee) await assign('ticket', ticket.id, me);
+      setReply('');
+      showToast('success', 'Resposta enviada. O ticket aguarda o solicitante.');
+    } catch (failure) {
+      showToast('error', failureMessage(failure, 'Não deu para enviar agora. Tente de novo.'));
+    }
   };
 
-  const closeCase = () => {
-    setTicketStatus(ticket.id, 'resolved');
-    showToast('success', 'Caso encerrado.');
+  const closeCase = async () => {
+    try {
+      await setTicketStatus(ticket.id, 'resolved');
+      showToast('success', 'Caso encerrado.');
+    } catch (failure) {
+      showToast('error', failureMessage(failure, 'Não deu para encerrar agora. Tente de novo.'));
+    }
   };
 
   return (

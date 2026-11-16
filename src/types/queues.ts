@@ -1,23 +1,21 @@
 import type { AccountRef } from './moderation';
 
-export type ReportTargetKind = 'review' | 'item';
+export type ReportTargetKind = 'review' | 'comment';
 
 export type ReportTarget = { kind: ReportTargetKind; id: string };
 
 export const REPORT_TARGET_LABEL: Record<ReportTargetKind, string> = {
   review: 'Avaliação',
-  item: 'Item do catálogo',
+  comment: 'Comentário',
 };
 
-export type ReportReason = 'fake' | 'offensive' | 'spam' | 'personalData' | 'unrelated' | 'misleading' | 'other';
+export type ReportReason = 'offensive' | 'personal_data' | 'spam' | 'false_info' | 'other';
 
 export const REPORT_REASON_LABEL: Record<ReportReason, string> = {
-  fake: 'Falsa ou copiada',
-  offensive: 'Ofensiva',
-  spam: 'Spam ou propaganda',
-  personalData: 'Expõe dados pessoais',
-  unrelated: 'Não fala do item',
-  misleading: 'Informação enganosa',
+  offensive: 'Ofensa ou discurso de ódio',
+  personal_data: 'Dado pessoal de outra pessoa',
+  spam: 'Propaganda ou spam',
+  false_info: 'Informação falsa',
   other: 'Outro motivo',
 };
 
@@ -25,6 +23,7 @@ export type Report = {
   id: string;
   target: ReportTarget;
   reporterId: string;
+  reporterName: string;
   reason: ReportReason;
   comment: string;
   createdAt: string;
@@ -72,6 +71,7 @@ export type TicketMessage = {
 export type Ticket = {
   id: string;
   requester: AccountRef;
+  requesterName: string;
   subject: string;
   topic: TicketTopic;
   status: TicketStatus;

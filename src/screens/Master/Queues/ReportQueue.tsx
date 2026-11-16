@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { EmptyNotice, FilterSelect, Tabs } from '../../../components';
 import { useQueues } from '../../../store/queues';
-import { useAccountName } from '../../../store/session';
 import { REPORT_REASON_LABEL, REPORT_TARGET_LABEL, type ReportReason, type ReportTargetKind } from '../../../types';
 import {
   DEFAULT_CASE_FILTERS,
@@ -16,7 +15,7 @@ import {
 } from '../../../utils/queues';
 import { AgeLabel, CountPill } from './QueueParts';
 import { ReportCaseModal } from './ReportCaseModal';
-import { useTargetInfo } from './useTargetInfo';
+import { useAdminName, useTargetInfo } from './useTargetInfo';
 
 const KIND_OPTIONS = (Object.keys(REPORT_TARGET_LABEL) as ReportTargetKind[]).map((value) => ({
   value,
@@ -32,7 +31,7 @@ const SORT_OPTIONS = [{ value: 'mostReported', label: 'Mais denunciadas primeiro
 
 function CaseRow({ reportCase, me, onOpen }: { reportCase: ReportCase; me: string; onOpen: () => void }) {
   const info = useTargetInfo()(reportCase.target);
-  const nameOf = useAccountName();
+  const nameOf = useAdminName();
   const resolved = reportCase.resolution && !reportCase.pending;
   return (
     <li>

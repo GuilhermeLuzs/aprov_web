@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
 import { EmptyNotice, FilterSelect, Tabs } from '../../../components';
-import { customers } from '../../../mocks';
 import { useQueues } from '../../../store/queues';
-import { useAccountName, useCompanies } from '../../../store/session';
+import { useAdminName } from './useTargetInfo';
 import { TICKET_STATUS_LABEL, TICKET_TOPIC_LABEL, type AccountKind, type TicketStatus, type TicketTopic } from '../../../types';
 import {
   DEFAULT_TICKET_FILTERS,
@@ -33,7 +32,6 @@ const STATUS_TAB: Record<TicketStatus, string> = { open: 'Abertos', waiting: 'Ag
 
 export function TicketQueue({ me }: { me: string }) {
   const { tickets, assignments } = useQueues();
-  const companies = useCompanies();
   const [filters, setFilters] = useState<TicketFilters>(DEFAULT_TICKET_FILTERS);
   const [openId, setOpenId] = useState<string | null>(null);
   const close = useCallback(() => setOpenId(null), []);
@@ -43,9 +41,7 @@ export function TicketQueue({ me }: { me: string }) {
   const countOf = (status: TicketStatus) => tickets.filter((t) => t.status === status).length;
   const update = (change: Partial<TicketFilters>) => setFilters((current) => ({ ...current, ...change }));
 
-  const nameOf = useAccountName();
-  const requesterName = (kind: AccountKind, id: string) =>
-    (kind === 'customer' ? customers.find((c) => c.id === id) : companies.find((c) => c.id === id))?.name ?? 'Conta removida';
+  const nameOf = useAdminName();
 
   return (
     <div className="flex flex-col gap-lg">
@@ -113,7 +109,7 @@ export function TicketQueue({ me }: { me: string }) {
                     </span>
                     <span className="text-caption text-ink-muted">
                       {ticket.requester.kind === 'customer' ? 'Cliente' : 'Empresa'} ·{' '}
-                      <span className="sensitive">{requesterName(ticket.requester.kind, ticket.requester.id)}</span>
+                      <span className="sensitive">{ticket.requesterName}</span>
                     </span>
                   </div>
                   <span className="font-semibold text-ink">{ticket.subject}</span>
