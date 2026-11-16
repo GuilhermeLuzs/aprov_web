@@ -1,46 +1,50 @@
-import { useMemo, useState } from 'react';
-import { ChartCard, PeriodFilter, StatTile } from '../../../components';
+import { useState } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { ChartCard, LoadingNotice, PeriodFilter, StatTile } from '../../../components';
+import { apiMasterOverview } from '../../../api';
 import { RatingTrendChart } from '../../../components/RatingTrendChart';
-import { customers, mockToday, reviews } from '../../../mocks';
-import { useProducts } from '../../../store/catalog';
-import { useCompanies } from '../../../store/session';
-import { CATEGORY_LABEL, type Category } from '../../../types';
 import { formatInt, formatPercent, plural } from '../../../utils/format';
-import { averagesByDay, countByWeekday, inRange, presetRange, type DayRange, type PeriodKey } from '../../../utils/overview';
-import { activeCount, categoryKindCounts, countByMonth, joinedCount, lastMonths, reviewedCount } from '../../../utils/platform';
+import { averagesFromApi, presetRange, todayInPanel, type DayRange, type PeriodKey } from '../../../utils/overview';
 import { CategoryChart } from './CategoryChart';
 import { ReviewVolumeChart } from './ReviewVolumeChart';
 
-const VOLUME_MONTHS = lastMonths(mockToday, 12);
-const VOLUME_RANGE: DayRange = { start: `${VOLUME_MONTHS[0]}-01`, end: mockToday };
 const INVALID_RANGE = 'A data final precisa ser igual ou depois da inicial.';
-const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
 function share(part: number, total: number): string {
   return formatPercent(total === 0 ? 0 : part / total);
 }
 
 export default function MasterOverviewScreen() {
-  const companies = useCompanies();
-  const products = useProducts();
-
+  const [today] = useState(todayInPanel);
   const [period, setPeriod] = useState<PeriodKey>('lastMonth');
-  const [custom, setCustom] = useState<DayRange>(presetRange('lastMonth', mockToday));
-
-  const last30Days = presetRange('30d', mockToday);
-  const active = activeCount(customers, last30Days);
-  const joined = joinedCount(customers, last30Days);
-  const reviewed = reviewedCount(products, reviews);
-  const productCount = products.filter((p) => p.kind === 'product').length;
-  const companyCategories = new Set(companies.map((c) => c.category)).size;
-
-  const volumeReviews = useMemo(() => inRange(reviews, VOLUME_RANGE), []);
-
+  const [custom, setCustom] = useState<DayRange>(() => presetRange('lastMonth', today));
   const customInvalid = period === 'custom' && custom.start > custom.end;
-  const ratingDays = useMemo(() => {
-    if (customInvalid) return [];
-    return averagesByDay(inRange(reviews, period === 'custom' ? custom : presetRange(period, mockToday)));
-  }, [period, custom, customInvalid]);
+  const range = period === 'custom' ? custom : presetRange(period, today);
+  const overview = useQuery({
+    queryKey: ['master', 'overview', range.start, range.end],
+    queryFn: () => apiMasterOverview(range.start, range.end),
+    enabled: !customInvalid,
+    placeholderData: keepPreviousData,
+  });
+  const data = overview.data;
+
+  if (!data) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando a visão geral..." />
+      </div>
+    );
+  }
+
+  const customers = { length: data.customers.total };
+  const active = data.customers.active;
+  const joined = data.customers.joined;
+  const reviewed = data.items.reviewed;
+  const products = { length: data.items.total };
+  const productCount = data.items.products;
+  const companies = { length: data.companies.total };
+  const companyCategories = data.companies.categories;
+  const ratingDays = customInvalid ? [] : data.days.map(({ day, count, ...averages }) => ({ day, count, ...averagesFromApi(averages) }));
 
   const periodFilter = (
     <PeriodFilter
@@ -90,7 +94,7 @@ export default function MasterOverviewScreen() {
 
       <div className="grid items-start gap-lg xl:grid-cols-3">
         <div className="flex min-w-zero flex-col gap-lg xl:col-span-2">
-          <ReviewVolumeChart byMonth={countByMonth(volumeReviews, VOLUME_MONTHS)} byWeekday={countByWeekday(volumeReviews)} />
+          <ReviewVolumeChart byMonth={data.volume.byMonth} byWeekday={data.volume.byWeekday} />
           {ratingDays.length > 0 ? (
             <RatingTrendChart
               data={ratingDays}
@@ -106,7 +110,7 @@ export default function MasterOverviewScreen() {
             </ChartCard>
           )}
         </div>
-        <CategoryChart counts={categoryKindCounts(products, CATEGORIES)} />
+        <CategoryChart counts={data.categories} />
       </div>
     </div>
   );

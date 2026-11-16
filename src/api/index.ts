@@ -69,3 +69,4 @@ export {
   type ApiMasterCompany,
   type ApiMasterCustomer,
 } from './accounts';
+export { apiMasterOverview, type ApiMasterOverview } from './masterOverview';
