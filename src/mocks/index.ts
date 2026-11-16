@@ -13,9 +13,7 @@ export { couponOffers } from './coupons';
 export { couponTemplate, integrationSettings } from './integrations';
 export { customers } from './platform';
 export { redemptions } from './redemptions';
-export { caseResolutions, reports } from './reports';
 export { tagById, tags } from './tags';
-export { assignments, tickets } from './tickets';
 
 export const products = [...companyProducts, ...partnerProducts];
 export const reviews = [...companyReviews, ...partnerReviews, ...reportedReviews];

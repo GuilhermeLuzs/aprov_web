@@ -1,28 +1,25 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { Button, Modal, RatingValue, StatusBadge, TextAreaField } from '../../../components';
-import { customers } from '../../../mocks';
-import { setProductStatus } from '../../../store/catalog';
-import { assign, resolveCase } from '../../../store/queues';
-import { useAccountName } from '../../../store/session';
+import { Button, Modal, RatingValue, TextAreaField } from '../../../components';
+import { assign, failureMessage, resolveCase } from '../../../store/queues';
 import { showToast } from '../../../store/toasts';
 import { REPORT_REASON_LABEL, REPORT_TARGET_LABEL, type CaseDecision } from '../../../types';
 import { ACCOUNT_PATH } from '../../../utils/accountSearch';
 import { formatDateTime, plural } from '../../../utils/format';
 import type { ReportCase } from '../../../utils/queues';
 import { AgeLabel } from './QueueParts';
-import { useTargetInfo } from './useTargetInfo';
+import { useAdminName, useTargetInfo } from './useTargetInfo';
 
 const NOTE_MAX = 500;
 
 const DECISION_LABEL: Record<ReportCase['target']['kind'], Record<CaseDecision, string>> = {
   review: { removed: 'Remover avaliação', kept: 'Manter avaliação' },
-  item: { removed: 'Inativar item', kept: 'Manter item' },
+  comment: { removed: 'Remover comentário', kept: 'Manter comentário' },
 };
 
 const DECISION_DONE: Record<ReportCase['target']['kind'], Record<CaseDecision, string>> = {
   review: { removed: 'Avaliação removida', kept: 'Avaliação mantida' },
-  item: { removed: 'Item inativado', kept: 'Item mantido' },
+  comment: { removed: 'Comentário removido', kept: 'Comentário mantido' },
 };
 
 type Props = {
@@ -34,17 +31,20 @@ type Props = {
 
 export function ReportCaseModal({ reportCase, me, onClose, onDecided }: Props) {
   const info = useTargetInfo()(reportCase.target);
-  const nameOf = useAccountName();
+  const nameOf = useAdminName();
   const [note, setNote] = useState('');
   const { kind } = reportCase.target;
   const { resolution } = reportCase;
 
-  const decide = (decision: CaseDecision) => {
+  const decide = async (decision: CaseDecision) => {
     if (note.length > NOTE_MAX) return;
-    resolveCase({ target: reportCase.target, decision, note: note.trim(), byId: me });
-    if (kind === 'item' && decision === 'removed') setProductStatus(reportCase.target.id, 'inactive');
-    showToast('success', `${DECISION_DONE[kind][decision]}.`);
-    onDecided(reportCase.key);
+    try {
+      await resolveCase({ target: reportCase.target, decision, note: note.trim() });
+      showToast('success', `${DECISION_DONE[kind][decision]}.`);
+      onDecided(reportCase.key);
+    } catch (error) {
+      showToast('error', failureMessage(error, 'Não deu para decidir agora. Tente de novo.'));
+    }
   };
 
   return (
@@ -71,17 +71,16 @@ export function ReportCaseModal({ reportCase, me, onClose, onDecided }: Props) {
       <section className="flex flex-col gap-sm rounded-card border border-border p-lg">
         <div className="flex flex-wrap items-start justify-between gap-md">
           <div className="flex min-w-zero flex-col gap-xs">
-            <span className="text-caption text-ink-muted">{kind === 'review' ? 'Avaliação denunciada' : 'Item denunciado'}</span>
+            <span className="text-caption text-ink-muted">{kind === 'review' ? 'Avaliação denunciada' : 'Comentário denunciado'}</span>
             <span className="sensitive font-semibold text-ink">{info.title}</span>
             <span className="sensitive text-caption text-ink-muted">{info.context}</span>
           </div>
           {info.rating !== undefined ? <RatingValue average={info.rating} /> : null}
-          {info.itemActive !== undefined ? <StatusBadge status={info.itemActive ? 'active' : 'inactive'} /> : null}
         </div>
         {info.text ? <p className="sensitive rounded-control bg-surface-alt p-md text-ink">{info.text}</p> : null}
         {info.owner ? (
           <span className="text-caption text-ink-muted">
-            {kind === 'review' ? 'Autor' : 'Empresa'}:{' '}
+            Autor:{' '}
             <Link
               to={`${ACCOUNT_PATH[info.owner.ref.kind]}/${info.owner.ref.id}`}
               className="sensitive font-semibold text-primary hover:text-primary-press"
@@ -113,7 +112,7 @@ export function ReportCaseModal({ reportCase, me, onClose, onDecided }: Props) {
               </div>
               {report.comment ? <p className="text-ink">{report.comment}</p> : null}
               <span className="sensitive text-caption text-ink-muted">
-                por {customers.find((c) => c.id === report.reporterId)?.name ?? 'conta removida'}
+                por {report.reporterName}
               </span>
             </li>
           ))}

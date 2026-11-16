@@ -1,12 +1,11 @@
 import { Clock } from 'lucide-react';
-import { mockNow } from '../../../mocks';
 import { icon } from '../../../theme';
 import { TICKET_STATUS_LABEL, type TicketStatus } from '../../../types';
 import { formatAge } from '../../../utils/format';
 import { isOverdue } from '../../../utils/queues';
 
 export function AgeLabel({ since, overdueCheck = true }: { since: string; overdueCheck?: boolean }) {
-  const now = mockNow();
+  const now = new Date().toISOString();
   const late = overdueCheck && isOverdue(since, now);
   return (
     <span className={`inline-flex items-center gap-xs text-caption whitespace-nowrap ${late ? 'font-semibold text-disagree' : 'text-ink-muted'}`}>

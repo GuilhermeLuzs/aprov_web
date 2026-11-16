@@ -56,3 +56,4 @@ export {
   type NewCoupon,
 } from './coupons';
 export { apiPanelOverview, type ApiOverview, type ApiRankedItem } from './overview';
+export { apiAssign, apiMasterQueues, apiReplyTicket, apiResolveCase, apiTicketStatus, type ApiQueues, type ApiTargetInfo } from './queues';
