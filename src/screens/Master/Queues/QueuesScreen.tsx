@@ -1,6 +1,6 @@
 import { useSearchParams } from 'react-router';
-import { Tabs } from '../../../components';
-import { useQueues } from '../../../store/queues';
+import { LoadingNotice, Tabs } from '../../../components';
+import { useQueues, useQueuesQuery } from '../../../store/queues';
 import { useCurrentAccount } from '../../../store/session';
 import { buildCases } from '../../../utils/queues';
 import { ReportQueue } from './ReportQueue';
@@ -10,12 +10,21 @@ type Queue = 'denuncias' | 'suporte';
 
 export default function QueuesScreen() {
   const me = useCurrentAccount()?.id ?? '';
+  const queuesQuery = useQueuesQuery();
   const { reports, resolutions, assignments, tickets } = useQueues();
   const [params, setParams] = useSearchParams();
   const queue: Queue = params.get('fila') === 'suporte' ? 'suporte' : 'denuncias';
 
   const pendingReports = buildCases(reports, resolutions, assignments).filter((c) => c.pending).length;
   const openTickets = tickets.filter((t) => t.status === 'open').length;
+
+  if (queuesQuery.isPending) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando as filas..." />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-xl px-lg py-xl lg:px-xxl">

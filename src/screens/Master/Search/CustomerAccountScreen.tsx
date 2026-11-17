@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
-import { AccountStatusBadge, CompanyAvatar, RatingValue, StatTile } from '../../../components';
+import { AccountStatusBadge, CompanyAvatar, LoadingNotice, RatingValue, StatTile } from '../../../components';
 import { numericId, useCustomerAccount } from '../../../queries/accounts';
 import { markViewed } from '../../../store/moderation';
 import { icon } from '../../../theme';
@@ -43,7 +43,8 @@ function CpfValue({ cpf }: { cpf: string }) {
 export default function CustomerAccountScreen() {
   const { id } = useParams();
   const [mockToday] = useState(todayInPanel);
-  const account = useCustomerAccount(numericId(id)).data;
+  const accountQuery = useCustomerAccount(numericId(id));
+  const account = accountQuery.data;
   const customer = account?.customer;
 
   useEffect(() => {
@@ -51,6 +52,14 @@ export default function CustomerAccountScreen() {
       markViewed({ ref: { kind: 'customer', id: customer.id }, name: customer.name, subtitle: `@${customer.username}`, status: customer.status });
     }
   }, [customer]);
+
+  if (accountQuery.isPending && numericId(id) !== null) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando a conta..." />
+      </div>
+    );
+  }
 
   if (!account || !customer) return <AccountNotFound />;
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { ChevronRight } from 'lucide-react';
-import { AccountStatusBadge, CompanyAvatar, EmptyNotice, PageSizeSelect, Pagination } from '../../../components';
+import { AccountStatusBadge, CompanyAvatar, EmptyNotice, LoadingNotice, PageSizeSelect, Pagination } from '../../../components';
 import type { ApiMasterCompany, ApiMasterCustomer } from '../../../api';
 import { useAccountSearch } from '../../../queries/accounts';
 import { companyFromApi } from '../../../store/session';
@@ -125,7 +125,8 @@ function ResultList({ kind, rows }: { kind: AccountKind; rows: Row[] }) {
 type Props = { kind: AccountKind; criteria: SearchCriteria };
 
 export function SearchResults({ kind, criteria }: Props) {
-  const results = useAccountSearch(kind, criteria).data ?? [];
+  const search = useAccountSearch(kind, criteria);
+  const results = search.data ?? [];
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
 
@@ -133,6 +134,8 @@ export function SearchResults({ kind, criteria }: Props) {
     kind === 'customer'
       ? (results as ApiMasterCustomer[]).map((c) => customerRow(c, c.status))
       : (results as ApiMasterCompany[]).map((c) => companyRow({ ...companyFromApi({ ...c, id: 0 }), id: c.id }, c.status));
+
+  if (search.isPending) return <LoadingNotice text="Buscando contas..." />;
 
   if (rows.length === 0) {
     return (

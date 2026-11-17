@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router';
-import { AccountStatusBadge, CompanyAvatar, RatingValue, StatTile, StatusBadge } from '../../../components';
+import { AccountStatusBadge, CompanyAvatar, LoadingNotice, RatingValue, StatTile, StatusBadge } from '../../../components';
 import { numericId, useCompanyAccount } from '../../../queries/accounts';
 import { markViewed } from '../../../store/moderation';
 import { companyFromApi } from '../../../store/session';
@@ -20,13 +20,22 @@ const TOP_ITEMS = 5;
 
 export default function CompanyAccountScreen() {
   const { id } = useParams();
-  const account = useCompanyAccount(numericId(id)).data;
+  const accountQuery = useCompanyAccount(numericId(id));
+  const account = accountQuery.data;
   const api = account?.company;
   const company = api ? { ...companyFromApi({ ...api, id: 0 }), id: api.id } : undefined;
 
   useEffect(() => {
     if (api) markViewed({ ref: { kind: 'company', id: api.id }, name: api.name, subtitle: `CNPJ ${api.cnpj}`, imageUrl: api.logoUrl ?? undefined, status: api.status });
   }, [api]);
+
+  if (accountQuery.isPending && numericId(id) !== null) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando a conta..." />
+      </div>
+    );
+  }
 
   if (!account || !company) return <AccountNotFound />;
 
