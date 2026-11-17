@@ -26,7 +26,7 @@ const ITEMS: Record<Role, NavItem[]> = {
 
 const PROFILE: NavItem = { label: 'Perfil', Icon: UserRound };
 
-const PROFILE_PATH: Partial<Record<Role, string>> = { master: '/master/perfil' };
+const PROFILE_PATH: Partial<Record<Role, string>> = { empresa: '/empresa/perfil', master: '/master/perfil' };
 
 const ITEM = 'flex shrink-0 items-center gap-md rounded-control px-md py-sm font-semibold whitespace-nowrap';
 
