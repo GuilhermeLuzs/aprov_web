@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Gift, ListPlus, Plus, ShoppingCart, Smartphone, Store, TriangleAlert, type LucideIcon } from 'lucide-react';
-import { Button, ChoiceGroup, EmptyNotice, PageSizeSelect, Pagination } from '../../../components';
+import { Button, ChoiceGroup, EmptyNotice, LoadingNotice, PageSizeSelect, Pagination } from '../../../components';
 import { useCoinSettingsQuery } from '../../../queries/coins';
 import { useCouponOffers } from '../../../store/coupons';
 import { setCouponSource, useIntegrationSettings } from '../../../store/integrations';
@@ -103,7 +103,8 @@ export default function CouponsScreen() {
   const account = useCurrentAccount();
   const companyId = account?.companyId ?? '';
   const coin = useCoinSettingsQuery().data;
-  const offers = useCouponOffers().data ?? [];
+  const offersQuery = useCouponOffers();
+  const offers = offersQuery.data ?? [];
   const [modal, setModal] = useState<ModalState>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(PAGE_SIZES[0]);
@@ -123,6 +124,14 @@ export default function CouponsScreen() {
     setPageSize(size);
     setPage(1);
   };
+
+  if (offersQuery.isPending) {
+    return (
+      <div className="px-lg py-xl lg:px-xxl">
+        <LoadingNotice text="Carregando os cupons..." />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-lg px-lg py-xl lg:px-xxl">
